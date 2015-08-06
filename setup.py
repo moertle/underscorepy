@@ -20,10 +20,10 @@ setup(
         '_.py',
     ],
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Topic :: Software Development :: Libraries",
-        "Programming Language :: Python :: 2.7",
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Software Development :: Libraries',
+        'Programming Language :: Python :: 2.7',
     ]
 )
