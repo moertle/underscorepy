@@ -1,2 +1,0 @@
-# underscorepy
-_.py
