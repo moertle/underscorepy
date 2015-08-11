@@ -7,6 +7,7 @@ class error(Exception):
     def __str__(self):
         return self.message
 
+_.error = error
+
 from .version  import *
 from .io       import *
-from .settings import *
