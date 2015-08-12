@@ -1,0 +1,4 @@
+*.pyc
+/underscorepy.egg-info
+/build
+/dist
