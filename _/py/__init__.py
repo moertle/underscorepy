@@ -15,6 +15,7 @@ class error(Exception):
 
 
 from .version  import *
+from .base     import *
 from .io       import *
 
 from . import version
