@@ -3,6 +3,8 @@ import sys
 
 import _
 
+from . import util
+
 # a generic error class for throwing exceptions
 class error(Exception):
     def __init__(self, fmt, *args):
@@ -11,13 +13,13 @@ class error(Exception):
     def __str__(self):
         return self.message
 
-_.error = error
-
-prefix      = ''
-namespace   = ''
 
 from .version  import *
 from .io       import *
 
+from . import version
+from . import io
 from . import paths
-paths = paths.Paths()
+
+_.error = error
+_.paths = paths.Paths()
