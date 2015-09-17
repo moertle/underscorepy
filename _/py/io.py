@@ -7,6 +7,7 @@ out = sys.stdout
 
 __all__ = ['Printf', 'Writeln', 'hexdump']
 
+
 class Colors:
     def black  (self, fmt='', *args): self('\x1b[1;30m' + fmt + '\x1b[0m', *args)
     def red    (self, fmt='', *args): self('\x1b[1;31m' + fmt + '\x1b[0m', *args)
@@ -17,15 +18,18 @@ class Colors:
     def cyan   (self, fmt='', *args): self('\x1b[1;36m' + fmt + '\x1b[0m', *args)
     def white  (self, fmt='', *args): self('\x1b[1;37m' + fmt + '\x1b[0m', *args)
 
+
 class Printf(Colors):
     def __call__(self, fmt='', *args):
         out.write(fmt % args)
         out.flush()
 
+
 class Writeln(Colors):
     def __call__(self, fmt='', *args):
         out.write(fmt % args)
         out.write('\n')
+
 
 def hexdump(blob, width=16, offset=0):
     fmt = '%%.%dx: ' % len('%.x' % (len(blob) - 1))
@@ -45,6 +49,7 @@ def hexdump(blob, width=16, offset=0):
 
         _.writeln()
         offset += width
+
 
 _.printf  = Printf()
 _.writeln = Writeln()
