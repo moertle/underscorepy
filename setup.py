@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup
 
-execfile('_/py/version.py')
+exec(compile(open('_/py/version.py').read(),'version.py','exec'))
 
 setup(
     name = 'underscorepy',
