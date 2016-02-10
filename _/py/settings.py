@@ -1,9 +1,10 @@
 
-import sys
-import os
 import argparse
 import collections
+import inspect
 import logging
+import os
+import sys
 import time
 
 try:
@@ -12,6 +13,7 @@ except ImportError:
     import ConfigParser as configparser
 
 import _.py
+
 
 _.py.argparser = argparse.ArgumentParser()
 
@@ -29,53 +31,63 @@ logging.basicConfig(
     )
 
 
-def load(prefix):
-    _.py.namespace = prefix
-    #parent = _.util.getParent()
-    #script_name = os.path.basename(parent)
-    #script_name = script_name.rsplit('.', 1)[0]
+class Paths(object):
+    def __init__(self, **kwds):
+        self.root      = None
+        self.namespace = None
+        for k,v in kwds.iteritems():
+            setattr(self, k, v)
 
-    #if prefix is None:
-    #    # get the filename of the caller
-    #    # get the directory name of the file
-    #    prefix = os.path.dirname(parent)
-    #    if prefix.endswith(os.path.sep + 'bin'):
-    #        prefix = os.path.join(prefix, '..')
-    #        prefix = os.path.abspath(prefix)
+    def __call__(self, toplevel, *args):
+        return os.path.join(self.root, toplevel, self.namespace, *args)
 
-    #prefix = os.path.abspath(prefix)
-    #if _.prefix != prefix:
-    #    _.prefix = prefix
-    #    logging.debug('Setting prefix to "%s"', _.prefix)
-    #if namespace is None:
-    #    namespace = script_name
-    #if namespace != _.namespace:
-    #    _.namespace = namespace
-    #    logging.debug('Setting namespace to "%s"', _.namespace)
 
-    # if settings is not passed in use the supplied or derived namespace
-    #settings = settings or namespace
+def load(settings=None, namespace=None, root=None):
+    _.py.namespace = namespace
+
+    # inspect who called this function
+    frames = inspect.getouterframes(inspect.currentframe())
+    # get the caller frame
+    frame = frames[-1]
+    # get the path of the caller
+    script_path = os.path.abspath(frame[1])
+
+    script_name = os.path.basename(script_path).rsplit('.', 1)[0]
+
+    if root is None:
+        root = os.path.dirname(script_path)
+        if root.endswith(os.path.sep + 'bin'):
+            root = os.path.join(root, '..')
+
+    root = os.path.abspath(root)
+
+    if namespace is None:
+        namespace = script_name
+
+    _.py.paths = Paths(root=root, namespace=namespace)
 
     _.py.args = _.py.argparser.parse_args()
 
-    _.py.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
-    _.py.config.optionxform = str
+    # if settings is not passed in use the supplied or derived namespace
+    settings = settings or namespace
 
     ini_files = [
-        _.py.paths('etc', prefix + '.ini'),
-        _.py.paths('etc', prefix + '.ini.local')
+        _.py.paths('etc', settings + '.ini'),
+        _.py.paths('etc', settings + '.local.ini'),
     ]
 
     if _.py.args.ini:
         ini_files.append(_.py.args.ini)
 
+    _.py.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
+    _.py.config.optionxform = str
     try:
         ok = _.py.config.read(ini_files)
     except configparser.ParsingError as e:
-        raise _.error('Unable to parse file: %s', e)
+        raise _.py.error('Unable to parse file: %s', e)
 
     if not ok:
-        raise _.error('Unable to read config file(s): %s', ini_files)
+        raise _.py.error('Unable to read config file(s): %s', ini_files)
 
     #file_name = script_name + '.log'
     #full_path = _.paths('var', file_name)

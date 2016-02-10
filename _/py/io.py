@@ -5,8 +5,6 @@ import _
 
 out = sys.stdout
 
-__all__ = ['Printf', 'Writeln', 'hexdump']
-
 
 class Colors:
     def black  (self, fmt='', *args): self('\x1b[1;30m' + fmt + '\x1b[0m', *args)
@@ -47,7 +45,7 @@ def hexdump(blob, width=16, offset=0):
             else:
                 _.printf.white('%c', c)
 
-        _.writeln()
+        _.printf('\n')
         offset += width
 
 
