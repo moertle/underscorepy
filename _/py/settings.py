@@ -13,12 +13,12 @@ except ImportError:
 
 import _.py
 
-_.argparser = argparse.ArgumentParser()
+_.py.argparser = argparse.ArgumentParser()
 
-_.argparser.add_argument('--ini', '-i',
+_.py.argparser.add_argument('--ini', '-i',
     help='Specify additional ini file')
 
-_.argparser.add_argument('--debug', '-d',
+_.py.argparser.add_argument('--debug', '-d',
     action='store_true',
     help='Print verbose debugging information')
 
@@ -56,7 +56,7 @@ def load(prefix):
     # if settings is not passed in use the supplied or derived namespace
     #settings = settings or namespace
 
-    _.py.args = _.argparser.parse_args()
+    _.py.args = _.py.argparser.parse_args()
 
     _.py.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
     _.py.config.optionxform = str
