@@ -12,9 +12,7 @@ class error(Exception):
         return self.message
 
 
-from .version  import *
-from .base     import *
-from .io       import *
+from .components import *
 
 from . import version
 from . import io

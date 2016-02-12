@@ -112,4 +112,8 @@ def load(settings=None, namespace=None, root=None):
     #if not hasattr(_.py.args, 'daemon'):
     #    _.module.load()
 
+    for name,component in _.py.ComponentRegistry.items():
+        logging.info('Loading %s components', name)
+        component.Loader(name)
+
     return
