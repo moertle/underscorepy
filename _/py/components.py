@@ -12,9 +12,6 @@ def load(prefix):
     for component in components:
         __import__(component)
 
-    #for module, moduleClass in pyaas.module.PyaasModule.registry.items():
-    #    moduleClass.load()
-
     return
 
 ComponentRegistry = {}
@@ -56,9 +53,11 @@ class Component(object):
                 module = getattr(module, p)
 
             try:
-                module = getattr(module, instance.capitalize())
+                className = instance.rsplit('.', 1)[-1]
+                className = className.capitalize()
+                module = getattr(module, className)
             except AttributeError:
-                raise _.py.error('Component has no class: %s', instance.capitalize())
+                raise _.py.error('Component %s has no class: %s', instance, className)
 
             params = dict(_.py.config.items(instance))
 
