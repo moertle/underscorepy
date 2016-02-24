@@ -12,8 +12,7 @@ class error(Exception):
         return self.message
 
 
-from .components import *
-
 from . import version
 from . import io
+from . import components
 from . import decorators

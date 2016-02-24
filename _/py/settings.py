@@ -112,8 +112,13 @@ def load(settings=None, namespace=None, root=None):
     #if not hasattr(_.py.args, 'daemon'):
     #    _.module.load()
 
-    for name,component in _.py.ComponentRegistry.items():
-        logging.info('Loading %s components', name)
-        component.Loader(name)
+    # check if the config file specifies components
+    if _.py.config.has_section('components'):
+        for name in _.py.components.Registry:
+            if _.py.config.has_option('components', name):
+                logging.info('Loading %s components', name)
+                _.py.components.Load(name)
+    else:
+        _.py.components.Registry.clear()
 
     return
