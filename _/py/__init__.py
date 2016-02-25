@@ -14,5 +14,6 @@ class error(Exception):
 
 from . import version
 from . import io
-from . import components
 from . import decorators
+from . import settings
+from . import components

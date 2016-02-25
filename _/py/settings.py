@@ -14,13 +14,12 @@ except ImportError:
 
 import _.py
 
+argparser = argparse.ArgumentParser()
 
-_.py.argparser = argparse.ArgumentParser()
-
-_.py.argparser.add_argument('--ini', '-i',
+argparser.add_argument('--ini', '-i',
     help='Specify additional ini file')
 
-_.py.argparser.add_argument('--debug', '-d',
+argparser.add_argument('--debug', '-d',
     action='store_true',
     help='Print verbose debugging information')
 
@@ -66,7 +65,7 @@ def load(settings=None, namespace=None, root=None):
 
     _.py.paths = Paths(root=root, namespace=namespace)
 
-    _.py.args = _.py.argparser.parse_args()
+    _.py.args = argparser.parse_args()
 
     # if settings is not passed in use the supplied or derived namespace
     settings = settings or namespace
@@ -89,29 +88,32 @@ def load(settings=None, namespace=None, root=None):
     if not ok:
         raise _.py.error('Unable to read config file(s): %s', ini_files)
 
-    #file_name = script_name + '.log'
-    #full_path = _.paths('var', file_name)
-    #logfile = logging.FileHandler(full_path)
-    #logfile.setLevel(logging.INFO)
-    #logfile.setFormatter(
-    #    logging.Formatter(
-    #        fmt = '%(asctime)s %(levelname)-8s %(message)s',
-    #        datefmt = '%Y-%m-%d %H:%M:%S',
-    #        )
-    #    )
+    file_name = script_name + '.log'
+    full_path = _.py.paths('var', file_name)
+    logfile = logging.FileHandler(full_path)
+    logfile.setLevel(logging.INFO)
+    logfile.setFormatter(
+        logging.Formatter(
+            fmt = '%(asctime)s %(levelname)-8s %(message)s',
+            datefmt = '%Y-%m-%d %H:%M:%S',
+            )
+        )
 
     # add the handlers to the logger
     root = logging.getLogger()
-    #root.addHandler(logfile)
+    root.addHandler(logfile)
 
     if _.py.args.debug:
         root.setLevel(logging.DEBUG)
-        #logfile.setLevel(logging.DEBUG)
+        logfile.setLevel(logging.DEBUG)
 
     # call this here if there is no daemon option
-    #if not hasattr(_.py.args, 'daemon'):
-    #    _.module.load()
+    if not hasattr(_.py.args, 'daemon'):
+        components()
 
+    return
+
+def components():
     # check if the config file specifies components
     if _.py.config.has_section('components'):
         for name in _.py.components.Registry:
@@ -121,4 +123,3 @@ def load(settings=None, namespace=None, root=None):
     else:
         _.py.components.Registry.clear()
 
-    return

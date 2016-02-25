@@ -64,3 +64,6 @@ def Load(name):
             module._pyConfig(config)
 
         component[instance] = module
+
+        if hasattr(component.cls, '_pyLoad'):
+            component.cls._pyLoad(component)
