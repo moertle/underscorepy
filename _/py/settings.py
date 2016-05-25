@@ -16,10 +16,10 @@ import _.py
 
 argparser = argparse.ArgumentParser()
 
-argparser.add_argument('--ini', '-i',
+argparser.add_argument('--ini', '-I',
     help='Specify additional ini file')
 
-argparser.add_argument('--debug', '-d',
+argparser.add_argument('--debug', '-D',
     action='store_true',
     help='Print verbose debugging information')
 

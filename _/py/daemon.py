@@ -18,7 +18,7 @@ _.py.settings.argparser.add_argument('daemon',
 _.py.settings.argparser.add_argument('--instance',
     help='Name an instance to allow multiple copies to run')
 
-_.py.settings.argparser.add_argument('--foreground', '-f',
+_.py.settings.argparser.add_argument('--foreground', '-F',
     action='store_true',
     help='Stay in the foreground')
 
@@ -103,12 +103,11 @@ class Daemonize(object):
 
         signal.signal(signal.SIGTERM, signal_callback)
 
-        with open(self.pidfile, 'w') as fp:
+        with open(self.pidfile, 'wb') as fp:
             fp.write('{}'.format(os.getpid()))
 
     def _getpid(self):
         pid = None
-
         if os.path.isfile(self.pidfile):
             try:
                 pid = open(self.pidfile, 'r')
@@ -121,14 +120,10 @@ class Daemonize(object):
                 pid = None
 
             # todo: test if pid is active or stale
-
-
         return pid
 
     def start(self):
-        pid = self._getpid()
-
-        if pid:
+        if self._getpid():
             logging.error('Daemon appears to be running')
             sys.exit(-1)
 
