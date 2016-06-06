@@ -34,7 +34,7 @@ class Paths(object):
     def __init__(self, **kwds):
         self.root      = None
         self.namespace = None
-        for k,v in kwds.iteritems():
+        for k,v in kwds.items():
             setattr(self, k, v)
 
     def __call__(self, toplevel, *args):
