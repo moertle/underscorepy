@@ -35,7 +35,7 @@ class Daemonize(object):
 
         instance = _.py.args.instance or 'underscore'
 
-        self.pidfile = '/tmp/{}-{}.pid'.format(instance, entry.func_name)
+        self.pidfile = '/tmp/{}-{}.pid'.format(instance, entry.__name__)
 
         if 'start' == _.py.args.daemon:
             self.start()
