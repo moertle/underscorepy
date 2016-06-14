@@ -41,9 +41,8 @@ class Paths(object):
         return os.path.join(self.root, toplevel, self.namespace, *args)
 
 
-def load(settings=None, namespace=None, root=None):
-    _.py.namespace = namespace
-
+#def load(settings=None, namespace=None, root=None):
+def load(**kwds):
     # inspect who called this function
     frames = inspect.getouterframes(inspect.currentframe())
     # get the caller frame
@@ -53,6 +52,7 @@ def load(settings=None, namespace=None, root=None):
 
     script_name = os.path.basename(script_path).rsplit('.', 1)[0]
 
+    root = kwds.get('root', None)
     if root is None:
         root = os.path.dirname(script_path)
         if root.endswith(os.path.sep + 'bin'):
@@ -60,7 +60,11 @@ def load(settings=None, namespace=None, root=None):
 
     root = os.path.abspath(root)
 
-    if namespace is None:
+    try:
+        namespace = kwds['namespace']
+        if not namespace:
+            namespace = ''
+    except KeyError:
         namespace = script_name
 
     _.py.paths = Paths(root=root, namespace=namespace)
@@ -68,7 +72,7 @@ def load(settings=None, namespace=None, root=None):
     _.py.args = argparser.parse_args()
 
     # if settings is not passed in use the supplied or derived namespace
-    settings = settings or namespace
+    settings = kwds.get('settings', namespace or script_name)
 
     ini_files = [
         _.py.paths('etc', settings + '.ini'),
