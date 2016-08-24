@@ -5,14 +5,14 @@ import types
 import _.py
 
 
-class Component(dict):
-    def __init__(self, cls):
-        self.cls = cls
-        dict.__init__(self)
-
 Registry = {}
 
 def Register(name):
+    class Component(dict):
+        def __init__(self, cls):
+            self.cls = cls
+            dict.__init__(self)
+
     if name in Registry:
         raise KeyError('There is already a registry for %s' % name)
 
@@ -38,6 +38,8 @@ def Load(name):
             logging.warn('No configuration for %s:%s', name, instance)
             continue
 
+        config = dict(_.py.config.items(instance))
+
         path = component.cls.__module__ + '.' + instance
         try:
             module = __import__(path)
@@ -48,8 +50,8 @@ def Load(name):
             except ImportError:
                 raise _.py.error('Component not found: %s', instance)
 
-        for p in path.split('.')[1:]:
-            module = getattr(module, p)
+        for subpath in path.split('.')[1:]:
+            module = getattr(module, subpath)
 
         try:
             className = instance.rsplit('.', 1)[-1]
@@ -57,8 +59,6 @@ def Load(name):
             module = getattr(module, className)
         except AttributeError:
             raise _.py.error('Component %s has no class: %s', instance, className)
-
-        config = dict(_.py.config.items(instance))
 
         if hasattr(module, '_pyConfig'):
             module._pyConfig(config)
