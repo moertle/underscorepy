@@ -66,4 +66,4 @@ def Load(name):
         component[instance] = module
 
         if hasattr(component.cls, '_pyLoad'):
-            component.cls._pyLoad(component)
+            component.cls._pyLoad(instance, module, config)
