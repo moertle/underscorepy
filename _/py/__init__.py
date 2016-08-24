@@ -17,3 +17,6 @@ from . import io
 from . import decorators
 from . import settings
 from . import components
+
+from .piper import Piper
+
