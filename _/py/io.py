@@ -51,7 +51,7 @@ def hexdump(blob, width=16, offset=0):
             if ord(c) < 32 or ord(c) > 126:
                 _.printf.VIOLET('.')
             else:
-                _.printf.WHITE.bold('%c', c)
+                _.printf.WHITE.bright('%c', c)
 
         _.printf('\n')
         offset += width
