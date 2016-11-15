@@ -44,7 +44,7 @@ def hexdump(blob, width=16, offset=0):
         blob = blob[width:]
 
         _.printf.WHITE(fmt, offset)
-        _.printf.CYAN.bold(' '.join('%.2x' % ord(c) for c in line))
+        _.printf.CYAN.bright(' '.join('%.2x' % ord(c) for c in line))
         _.printf(' ' * ((width-len(line))*3+1))
 
         for c in line:
