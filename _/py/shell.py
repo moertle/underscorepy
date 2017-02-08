@@ -2,7 +2,6 @@
 import sys
 import os
 import inspect
-import shlex
 
 import _.py
 
@@ -15,28 +14,53 @@ except ImportError:
 
 class Shell:
     prompt = '->> '
+    true_values  = [ 't', 'true',  'y', 'yes', '1', 'on'  ]
+    false_values = [ 'f', 'false', 'n', 'no',  '0', 'off' ]
 
+    # parse function signature to intelligently parse input
     class Signature:
         def __init__(self, name, func):
+            # save a reference to the function
             self.func = func
+            # use the built-in python inspector to get the spec
             spec = inspect.getargspec(func.__func__)
-            self.positional,self.mapping = spec.args[1:],[]
-            self.casts = []
+            # initially assume any arguments are positional
+            self.positional = spec.args[1:]
+            self.mapping    = []
+            self.casts      = []
+
+            # look at arguments that have a default type or value assigned
             defaults = spec.defaults
             if defaults:
+                # convert tuple into modifiable list
                 defaults = list(defaults)
+                # segment positional arguments from the rest of the function signature
                 offset = -len(defaults)
                 self.positional,self.mapping = self.positional[:offset],self.positional[offset:]
+                # treat optional arguments with a default type as a required positional argument that is cast
                 while defaults:
+                    # stop on first non-type default value
                     if not isinstance(defaults[0], type):
                         break
+                    # remote it from the optional arguments
                     name = self.mapping.pop(0)
                     cast = defaults.pop(0)
+                    # and append it to a separate list for casting
                     self.casts.append((name,cast))
+
+            # arguments with a boolean default of True get their name inverted
+            for idx,default in enumerate(defaults):
+                if default is True:
+                    self.mapping[idx] = 'no-' + self.mapping[idx]
+
+            # store the remaining default values
             self.defaults = defaults
+
+            # allow commands to take a arbitrary number of arguments
             self.varargs = True if spec.varargs else False
 
     def __init__(self):
+        # for every function starting with 'shell_' create a function signature for parsing
         self._signatures = {}
         for name in dir(self):
             if not name.startswith('shell_'):
@@ -80,7 +104,7 @@ class Shell:
         if not line:
             return
 
-        line = shlex.split(line)
+        line = line.split()
         command,line = line[0],line[1:]
         command = command.lower()
 
@@ -110,10 +134,21 @@ class Shell:
                     idx = sig.mapping.index(current)
                 except ValueError:
                     raise _.py.error('Unknown argument: --%s', current)
-                try:
-                    value = line.pop(0)
-                except IndexError:
-                    raise _.py.error('Missing argument: --%s', current)
+
+                if isinstance(optional[idx], bool):
+                    value = not sig.defaults[idx]
+                else:
+                    try:
+                        value = line.pop(0)
+                    except IndexError:
+                        raise _.py.error('Missing argument: --%s', current)
+
+                    if sig.defaults[idx] is not None:
+                        _type = type(sig.defaults[idx])
+                        try:
+                            value = _type(value)
+                        except:
+                            raise _.py.error('Invalid argument for %s: "%s"', _type.__name__, value)
 
                 optional[idx] = value
             else:
@@ -123,9 +158,16 @@ class Shell:
                     if casts:
                         name,cast = casts.pop(0)
                         try:
+                            if cast == bool:
+                                if current.lower() in self.true_values:
+                                    current = True
+                                elif current.lower() in self.false_values:
+                                    current = False
+                                else:
+                                    raise ValueError
                             value = cast(current)
                         except:
-                            raise _.py.error('Invalid argument for %s: "%s"', cast.__name__, current)
+                            raise _.py.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
                         positional.append(value)
                     else:
                         varargs.append(current)
@@ -154,15 +196,15 @@ class Shell:
             if line and orig.endswith(' '):
                 position += 1
 
-            if position > 1:
+            if position == 1:
+                function = self._complete_shell
+            else:
                 function = getattr(self, 'complete_'+line[0], None)
                 if line[0] in self._signatures:
                     for arg in self._signatures[line[0]].mapping:
                         arg = '--' + arg
                         if arg.startswith(text) and arg not in line:
                             self._matches.append(arg+' ')
-            else:
-                function = self._complete_shell
 
             if function:
                 for match in function(line, text, position):
