@@ -48,10 +48,10 @@ class Shell:
                     # and append it to a separate list for casting
                     self.casts.append((name,cast))
 
-            # arguments with a boolean default of True get their name inverted
-            for idx,default in enumerate(defaults):
-                if default is True:
-                    self.mapping[idx] = 'no-' + self.mapping[idx]
+                # arguments with a boolean default of True get their name inverted
+                for idx,default in enumerate(defaults):
+                    if default is True:
+                        self.mapping[idx] = 'no-' + self.mapping[idx]
 
             # store the remaining default values
             self.defaults = defaults
@@ -135,7 +135,7 @@ class Shell:
                 except ValueError:
                     raise _.py.error('Unknown argument: --%s', current)
 
-                if isinstance(optional[idx], bool):
+                if isinstance(sig.defaults[idx], bool):
                     value = not sig.defaults[idx]
                 else:
                     try:
@@ -189,37 +189,37 @@ class Shell:
 
     def complete(self, text, state):
         if state == 0:
-            self._matches = []
+            self.completion_matches = []
             orig = readline.get_line_buffer()
             line = orig.split()
             position = len(line) or 1
             if line and orig.endswith(' '):
                 position += 1
+            else:
+                line = line[:-1]
 
             if position == 1:
                 function = self._complete_shell
             else:
                 function = getattr(self, 'complete_'+line[0], None)
                 if line[0] in self._signatures:
-                    for arg in self._signatures[line[0]].mapping:
+                    sig = self._signatures[line[0]]
+                    for arg in sig.mapping:
                         arg = '--' + arg
-                        if arg.startswith(text) and arg not in line:
-                            self._matches.append(arg+' ')
+                        if arg.startswith(text): # and arg not in line:
+                            self.completion_matches.append(arg+' ')
 
             if function:
-                for match in function(line, text, position):
-                    self._matches.append(match+' ')
+                function(line, text, position)
 
         try:
-            return self._matches[state]
+            return self.completion_matches[state]
         except IndexError:
             return None
 
     def _complete_shell(self, line, text, position):
-        commands = []
         for name in dir(self):
             if name.startswith('shell_'):
                 name = name[6:]
                 if name.startswith(text.lower()):
-                    commands.append(name)
-        return commands
+                    self.completion_matches.append(name+' ')
