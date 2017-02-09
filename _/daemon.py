@@ -8,17 +8,17 @@ import time
 import inspect
 import logging
 
-import _.py
+import _
 
 
-_.py.settings.argparser.add_argument('daemon',
+_.settings.argparser.add_argument('daemon',
     metavar='(start|stop|restart)',
     help='Control the state of the service')
 
-_.py.settings.argparser.add_argument('--instance',
+_.settings.argparser.add_argument('--instance',
     help='Name an instance to allow multiple copies to run')
 
-_.py.settings.argparser.add_argument('--foreground', '-F',
+_.settings.argparser.add_argument('--foreground', '-F',
     action='store_true',
     help='Stay in the foreground')
 
@@ -33,21 +33,21 @@ class Daemonize(object):
         self.args  = args
         self.kwds  = kwds
 
-        instance = _.py.args.instance or 'underscore'
+        instance = _.settings.args.instance or 'underscore'
 
         self.pidfile = '/tmp/{}-{}.pid'.format(instance, entry.__name__)
 
-        if 'start' == _.py.args.daemon:
+        if 'start' == _.settings.args.daemon:
             self.start()
-        elif 'stop' == _.py.args.daemon:
+        elif 'stop' == _.settings.args.daemon:
             self.stop()
-        elif 'restart' == _.py.args.daemon:
+        elif 'restart' == _.settings.args.daemon:
             self.restart()
         else:
-            raise _.py.error('Unknown daemon option')
+            raise _.error('Unknown daemon option')
 
     def daemonize(self):
-        if _.py.args.foreground:
+        if _.settings.args.foreground:
             logging.debug('Staying in the foreground')
             return
 
@@ -130,7 +130,7 @@ class Daemonize(object):
         # Start the daemon
         self.daemonize()
 
-        _.py.settings.components()
+        _.settings.components()
 
         self.entry(*self.args, **self.kwds)
 

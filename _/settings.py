@@ -12,7 +12,7 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
-import _.py
+import _
 
 argparser = argparse.ArgumentParser()
 
@@ -67,33 +67,33 @@ def load(**kwds):
     except KeyError:
         namespace = script_name
 
-    _.py.paths = Paths(root=root, namespace=namespace)
+    _.paths = Paths(root=root, namespace=namespace)
 
-    _.py.args = argparser.parse_args()
+    _.settings.args = argparser.parse_args()
 
     # if settings is not passed in use the supplied or derived namespace
     settings = kwds.get('settings', namespace or script_name)
 
     ini_files = [
-        _.py.paths('etc', settings + '.ini'),
-        _.py.paths('etc', settings + '.local.ini'),
+        _.paths('etc', settings + '.ini'),
+        _.paths('etc', settings + '.local.ini'),
     ]
 
-    if _.py.args.ini:
-        ini_files.append(_.py.args.ini)
+    if _.settings.args.ini:
+        ini_files.append(_.settings.args.ini)
 
-    _.py.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
-    _.py.config.optionxform = str
+    _.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
+    _.config.optionxform = str
     try:
-        ok = _.py.config.read(ini_files)
+        ok = _.config.read(ini_files)
     except configparser.ParsingError as e:
-        raise _.py.error('Unable to parse file: %s', e)
+        raise _.error('Unable to parse file: %s', e)
 
     if not ok:
-        raise _.py.error('Unable to read config file(s): %s', ini_files)
+        raise _.error('Unable to read config file(s): %s', ini_files)
 
     file_name = script_name + '.log'
-    full_path = _.py.paths('var', file_name)
+    full_path = _.paths('var', file_name)
     logfile = logging.FileHandler(full_path)
     logfile.setLevel(logging.INFO)
     logfile.setFormatter(
@@ -107,23 +107,23 @@ def load(**kwds):
     root = logging.getLogger()
     root.addHandler(logfile)
 
-    if _.py.args.debug:
+    if _.settings.args.debug:
         root.setLevel(logging.DEBUG)
         logfile.setLevel(logging.DEBUG)
 
     # call this here if there is no daemon option
-    if not hasattr(_.py.args, 'daemon'):
+    if not hasattr(_.settings.args, 'daemon'):
         components()
 
     return
 
 def components():
     # check if the config file specifies components
-    if _.py.config.has_section('components'):
-        for name in _.py.components.Registry:
-            if _.py.config.has_option('components', name):
+    if _.config.has_section('components'):
+        for name in _.components.Registry:
+            if _.config.has_option('components', name):
                 logging.info('Loading %s components', name)
-                _.py.components.Load(name)
+                _.components.Load(name)
     else:
-        _.py.components.Registry.clear()
+        _.components.Registry.clear()
 

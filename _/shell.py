@@ -3,7 +3,7 @@ import sys
 import os
 import inspect
 
-import _.py
+import _
 
 try:
     import readline
@@ -89,7 +89,7 @@ class Shell:
                     break
                 try:
                     stop = self.process(line)
-                except _.py.error as e:
+                except _.error as e:
                     _.writeln.red('[!] %s', e)
 
         finally:
@@ -109,7 +109,7 @@ class Shell:
         command = command.lower()
 
         if command not in self._signatures:
-            raise _.py.error('Unknown command: %s', command)
+            raise _.error('Unknown command: %s', command)
 
         sig = self._signatures[command]
 
@@ -133,7 +133,7 @@ class Shell:
                 try:
                     idx = sig.mapping.index(current)
                 except ValueError:
-                    raise _.py.error('Unknown argument: --%s', current)
+                    raise _.error('Unknown argument: --%s', current)
 
                 if isinstance(sig.defaults[idx], bool):
                     value = not sig.defaults[idx]
@@ -141,14 +141,14 @@ class Shell:
                     try:
                         value = line.pop(0)
                     except IndexError:
-                        raise _.py.error('Missing argument: --%s', current)
+                        raise _.error('Missing argument: --%s', current)
 
                     if sig.defaults[idx] is not None:
                         _type = type(sig.defaults[idx])
                         try:
                             value = _type(value)
                         except:
-                            raise _.py.error('Invalid argument for %s: "%s"', _type.__name__, value)
+                            raise _.error('Invalid argument for %s: "%s"', _type.__name__, value)
 
                 optional[idx] = value
             else:
@@ -167,7 +167,7 @@ class Shell:
                                     raise ValueError
                             value = cast(current)
                         except:
-                            raise _.py.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
+                            raise _.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
                         positional.append(value)
                     else:
                         varargs.append(current)
@@ -175,14 +175,14 @@ class Shell:
         if len(positional) < len(sig.positional):
             missing = sig.positional[len(positional):]
             missing += [n for n,c in casts]
-            raise _.py.error('Missing arguments: %s', ' '.join(missing))
+            raise _.error('Missing arguments: %s', ' '.join(missing))
 
         if casts:
             missing = [n for n,c in casts]
-            raise _.py.error('Missing arguments: %s', ' '.join(missing))
+            raise _.error('Missing arguments: %s', ' '.join(missing))
 
         if not sig.varargs and varargs:
-            raise _.py.error('Too many arguments: %s', ' '.join(varargs))
+            raise _.error('Too many arguments: %s', ' '.join(varargs))
 
         args = positional + optional + varargs
         sig.func(*args)

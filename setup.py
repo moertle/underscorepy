@@ -4,11 +4,10 @@ import os
 
 from setuptools import setup
 
-exec(compile(open('_/py/version.py').read(),'version.py','exec'))
+exec(compile(open('_/version.py').read(),'version.py','exec'))
 
 setup(
     name               = 'underscorepy',
-    namespace_packages = ['_'],
     author             = __author__,
     author_email       = __email__,
     version            = __version__,
@@ -17,7 +16,7 @@ setup(
     description        = '_.py Core library',
     long_description   = open('README.rst').read(),
     packages = [
-        '_.py',
+        '_',
         ],
     classifiers=[
         'Development Status :: 3 - Alpha',

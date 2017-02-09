@@ -2,7 +2,7 @@
 import logging
 import types
 
-import _.py
+import _
 
 
 Registry = {}
@@ -29,16 +29,16 @@ def Load(name):
         logging.warn('Unable to find component')
         return
 
-    instances = _.py.config.get('components', name)
+    instances = _.config.get('components', name)
     instances = [instance.strip() for instance in instances.split(',')]
     for instance in instances:
         logging.info('Loading %s:%s', name, instance)
 
-        if not _.py.config.has_section(instance):
+        if not _.config.has_section(instance):
             logging.warn('No configuration for %s:%s', name, instance)
             continue
 
-        config = dict(_.py.config.items(instance))
+        config = dict(_.config.items(instance))
 
         path = component.cls.__module__ + '.' + instance
         try:
@@ -48,7 +48,7 @@ def Load(name):
             try:
                 module = __import__(path)
             except ImportError:
-                raise _.py.error('Component not found: %s', instance)
+                raise _.error('Component not found: %s', instance)
 
         for subpath in path.split('.')[1:]:
             module = getattr(module, subpath)
@@ -58,7 +58,7 @@ def Load(name):
             className = className.capitalize()
             module = getattr(module, className)
         except AttributeError:
-            raise _.py.error('Component %s has no class: %s', instance, className)
+            raise _.error('Component %s has no class: %s', instance, className)
 
         if hasattr(module, '_pyConfig'):
             module._pyConfig(config)
