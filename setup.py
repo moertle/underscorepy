@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-import os
+#!/usr/bin/env python3
 
 from setuptools import setup
 
@@ -13,16 +11,31 @@ setup(
     version            = __version__,
     license            = __license__,
     url                = 'http://underscorepy.org',
-    description        = '_.py Core library',
+    description        = '_.py library',
     long_description   = open('README.rst').read(),
     packages = [
         '_',
+        '_.pb',
+        '_.pb.meta',
+        '_.pb.mongopb',
+        '_.storage',
+        '_.storage.engines',
+        '_.web',
+        '_.web.auth',
+        '_.web.handlers',
+        ],
+    package_data = {
+        '_.pb': ['*.pb.*', '*.proto'],
+        },
+    install_requires = [
+        'protobuf >= 3.2.0',
+        'tornado >= 4.4.2',
         ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Topic :: Software Development :: Libraries',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.x',
         ]
     )

@@ -1,4 +1,8 @@
+__pycache__
 *.pyc
-/underscorepy.egg-info
+*_pb2.py
+*.pb.cc
+*.pb.h
 /build
 /dist
+/underscorepy.egg-info

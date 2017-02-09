@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package _.pb;
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FileOptions {
+    string engine = 8101;
+}
+
+extend google.protobuf.MessageOptions {
+             bool    table  = 8101;
+    repeated string  fkey   = 8102;
+}

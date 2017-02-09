@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package _.pb;
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FileOptions {
+    optional string version = 8001;
+    optional string project = 8002;
+}
+
+extend google.protobuf.MessageOptions {
+    optional string display   = 8001;
+    optional string msg_type  = 8002;
+}
+
+extend google.protobuf.FieldOptions {
+    optional string label   = 8001;
+    optional bool   hidden  = 8002;
+    optional string convert = 8003;
+    optional string mapping = 8004;
+}
+
+extend google.protobuf.EnumOptions {
+    optional string description = 8001;
+}
