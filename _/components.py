@@ -29,16 +29,16 @@ def Load(name):
         logging.warn('Unable to find component')
         return
 
-    instances = _.config.get('components', name)
+    instances = _.settings.config.get('components', name)
     instances = [instance.strip() for instance in instances.split(',')]
     for instance in instances:
         logging.info('Loading %s:%s', name, instance)
 
-        if not _.config.has_section(instance):
+        if not _.settings.config.has_section(instance):
             logging.warn('No configuration for %s:%s', name, instance)
             continue
 
-        config = dict(_.config.items(instance))
+        config = dict(_.settings.config.items(instance))
 
         path = component.cls.__module__ + '.' + instance
         try:

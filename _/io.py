@@ -40,15 +40,15 @@ class Writeln(Printf):
 def hexdump(blob, width=16, offset=0):
     fmt = '%%.%dx: ' % len('%.x' % (len(blob) - 1))
     while blob:
-        line = blob[:width]
+        line = bytearray(blob[:width])
         blob = blob[width:]
 
         _.printf.WHITE(fmt, offset)
-        _.printf.CYAN.bright(' '.join('%.2x' % ord(c) for c in line))
+        _.printf.CYAN.bright(' '.join('%.2x' % c for c in line))
         _.printf(' ' * ((width-len(line))*3+1))
 
         for c in line:
-            if ord(c) < 32 or ord(c) > 126:
+            if c < 32 or c > 126:
                 _.printf.VIOLET('.')
             else:
                 _.printf.WHITE.bright('%c', c)

@@ -41,7 +41,6 @@ class Paths(object):
         return os.path.join(self.root, toplevel, self.namespace, *args)
 
 
-#def load(settings=None, namespace=None, root=None):
 def load(**kwds):
     # inspect who called this function
     frames = inspect.getouterframes(inspect.currentframe())
@@ -82,10 +81,10 @@ def load(**kwds):
     if _.settings.args.ini:
         ini_files.append(_.settings.args.ini)
 
-    _.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
-    _.config.optionxform = str
+    _.settings.config = configparser.SafeConfigParser(dict_type=collections.OrderedDict)
+    _.settings.config.optionxform = str
     try:
-        ok = _.config.read(ini_files)
+        ok = _.settings.config.read(ini_files)
     except configparser.ParsingError as e:
         raise _.error('Unable to parse file: %s', e)
 
@@ -117,13 +116,13 @@ def load(**kwds):
 
     return
 
+
 def components():
     # check if the config file specifies components
-    if _.config.has_section('components'):
+    if _.settings.config.has_section('components'):
         for name in _.components.Registry:
-            if _.config.has_option('components', name):
+            if _.settings.config.has_option('components', name):
                 logging.info('Loading %s components', name)
                 _.components.Load(name)
     else:
         _.components.Registry.clear()
-
