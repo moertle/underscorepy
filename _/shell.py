@@ -1,6 +1,7 @@
 
 import sys
 import os
+import atexit
 import inspect
 import functools
 
@@ -86,6 +87,14 @@ class Shell:
                 func = getattr(obj, name)
                 name = name[6:]
                 obj._signatures[name] = _Signature(func)
+
+    def set_history_file(self, filename):
+        filename = os.path.expanduser(filename)
+        try:
+            readline.read_history_file(filename)
+        except:
+            pass
+        atexit.register(readline.write_history_file, filename)
 
     def loop(self, intro=None):
         self.old_completer = readline.get_completer()
@@ -287,16 +296,21 @@ class Shell:
         return [n + ' ' for n in obj._signatures if n.startswith(text)]
 
     def shell_help(self, *commands):
+        'display usage for classes and commands'
+
         signatures = self._signatures
+        command = None
         _commands = list(commands)
         while _commands:
-            command = _commands.pop(0)
+            command = _commands.pop(0).lower()
             signature = signatures.get(command)
             if not signature:
-                raise _.error('Unknown command: %s', ' '.join(commands))
+                raise _.error('Unknown command: %s', ' '.join(commands).lower())
             # is it a signature?
             if isinstance(signature, _Signature):
-                _.writeln.blue('%s', ' '.join(commands))
+                command = ' '.join(commands).lower()
+                _.writeln.BLUE(' %s', command)
+                _.writeln(' %s ', '=' * len(command))
                 _.writeln(' %s', signature.func.__doc__)
                 _.writeln()
                 return
@@ -313,16 +327,19 @@ class Shell:
             else:
                 parents.append((command_name,signature.__doc__))
 
+        if command:
+            _.writeln.BLUE(' %s', command)
+            _.writeln(' %s ', '=' * len(command))
         fmt = ' %%-%ds - %%s' % max_name
         if parents:
-            _.writeln.blue(' Classes')
+            _.writeln.BLUE(' Classes')
             for name,help in parents:
                 if help is None: help = ''
                 _.writeln(fmt, name, help)
             _.writeln()
 
         if commands:
-            _.writeln.blue(' Commands')
+            _.writeln.BLUE(' Commands')
             for name,help in commands:
                 if help is None: help = ''
                 _.writeln(fmt, name, help)
