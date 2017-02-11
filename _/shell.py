@@ -106,39 +106,42 @@ class Shell:
         finally:
             readline.set_completer(self.old_completer)
 
-    def process(self, orig):
-        _terminal_size = os.get_terminal_size()
-        self.rows = _terminal_size.lines
-        self.cols = _terminal_size.columns
+    def process(self, original):
+        # strip and split the original input
+        line = original.strip().split()
+        # do nothing on empty line
+        if not line: return
 
-        line = orig.strip()
-        if not line:
-            return
+        # preserve parent commands for error message
+        parent = []
+        # iterate over the signatures tree
+        signatures = self._signatures
+        while True:
+            # pop the
+            command = line.pop(0).lower()
+            parent.append(command)
 
-        line = line.split()
-        command,line = line[0],line[1:]
-        command = command.lower()
+            signature = signatures.get(command)
+            if not signature:
+                raise _.error('Unknown command: %s', ' '.join(parent))
 
-        if command not in self._signatures:
-            raise _.error('Unknown command: %s', command)
+            # is it a signature?
+            if isinstance(signature, _Signature):
+                break
 
-        sig = self._signatures[command]
-        while not isinstance(sig, _Signature):
+            # otherwise it is a "parent_" class
+            signatures = signature._signatures
             if not line:
-                raise _.error('Missing command')
-            subcommand,line = line[0],line[1:]
-            if subcommand not in sig._signatures:
-                raise _.error('Unknown command: %s %s', command, subcommand)
-            sig = sig._signatures[subcommand]
+                raise _.error('Missing command: %s', ' '.join(parent))
 
         positional = []
         optional   = []
         varargs    = []
 
-        if sig.defaults:
-            optional = list(sig.defaults)
+        if signature.defaults:
+            optional = list(signature.defaults)
 
-        casts = list(sig.casts)
+        casts = list(signature.casts)
         stop = False
         while line:
             current = line.pop(0)
@@ -149,20 +152,20 @@ class Shell:
                     continue
 
                 try:
-                    idx = sig.mapping.index(current)
+                    idx = signature.mapping.index(current)
                 except ValueError:
                     raise _.error('Unknown argument: --%s', current)
 
-                if isinstance(sig.defaults[idx], bool):
-                    value = not sig.defaults[idx]
+                if isinstance(signature.defaults[idx], bool):
+                    value = not signature.defaults[idx]
                 else:
                     try:
                         value = line.pop(0)
                     except IndexError:
                         raise _.error('Missing argument: --%s', current)
 
-                    if sig.defaults[idx] is not None:
-                        _type = type(sig.defaults[idx])
+                    if signature.defaults[idx] is not None:
+                        _type = type(signature.defaults[idx])
                         try:
                             value = _type(value)
                         except:
@@ -170,7 +173,7 @@ class Shell:
 
                 optional[idx] = value
             else:
-                if len(positional) < len(sig.positional):
+                if len(positional) < len(signature.positional):
                     positional.append(current)
                 else:
                     if casts:
@@ -190,8 +193,8 @@ class Shell:
                     else:
                         varargs.append(current)
 
-        if len(positional) < len(sig.positional):
-            missing = sig.positional[len(positional):]
+        if len(positional) < len(signature.positional):
+            missing = signature.positional[len(positional):]
             missing += [n for n,c in casts]
             raise _.error('Missing arguments: %s', ' '.join(missing))
 
@@ -199,60 +202,59 @@ class Shell:
             missing = [n for n,c in casts]
             raise _.error('Missing arguments: %s', ' '.join(missing))
 
-        if not sig.varargs and varargs:
+        if not signature.varargs and varargs:
             raise _.error('Too many arguments: %s', ' '.join(varargs))
 
+        # let functions know about the size of the terminal
+        _terminal_size = os.get_terminal_size()
+        self.cols = _terminal_size.columns
+        self.rows = _terminal_size.lines
+
+        # concatenate arguments to pass to shell function
         args = positional + optional + varargs
-        sig.func(*args)
+        signature.func(*args)
 
     def complete(self, text, state):
-        def add_args(sig):
-            for arg in sig.mapping:
+        def add_args(signature):
+            for arg in signature.mapping:
                 arg = '--' + arg
-                if arg.startswith(text): # and arg not in line:
+                if arg.startswith(text):
                     self.completion_matches.append(arg+' ')
 
-        def find_completer(line):
-            if not line:
-                return self.__complete_commands,0
-
-            position = len(line)
-            if orig.endswith(' '):
-                position += 1
-
-            if position == 1:
-                return self.__complete_commands,1
-
-            command,line = line[0],line[1:]
-            command = command.lower()
-            if command not in self._signatures:
-                return None,None
-
-            sig = self._signatures[command]
-            if isinstance(sig, _Signature):
-                add_args(sig)
-                func = getattr(self, 'complete_' + command, None)
-                return func,position
-
-            if position == 2:
-                func = functools.partial(self.__complete_commands, obj=sig)
-                return func,2
-
-            subcommand,line = line[0],line[1:]
-            if subcommand not in sig._signatures:
-                return None,None
-
-            subsig = sig._signatures[subcommand]
-            add_args(subsig)
-            func = getattr(sig, 'complete_' + subcommand, None)
-            return func,position
+        def find_completer(line, text):
+            obj = self
+            while True:
+                # complete missing command
+                if not line:
+                    return functools.partial(self.__complete_commands, obj=obj)
+                # pop the command name
+                command = line.pop(0).lower()
+                # get the signature
+                signature = obj._signatures.get(command, None)
+                if not signature:
+                    return None
+                # if a signature then return completer
+                if isinstance(signature, _Signature):
+                    add_args(signature)
+                    return getattr(obj, 'complete_' + command, None)
+                # drill down to the next level
+                obj = signature
 
         if state == 0:
+            # clear matches
             self.completion_matches = []
+            # get the original input line
+            original = readline.get_line_buffer()
+            line = original.split()
 
-            orig = readline.get_line_buffer()
-            line = orig.split()
-            func,position = find_completer(line)
+            position = len(line)
+            # if in the middle of an argument then trim it as it will be in *text*
+            if original.endswith(' '):
+                position += 1
+            else:
+                line = line[:-1]
+
+            func = find_completer(line, text)
             if func:
                 self.completion_matches += func(line, text, position)
 
