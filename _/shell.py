@@ -20,9 +20,9 @@ class _Signature:
         # use the built-in python inspector to get the spec
         spec = inspect.getargspec(func.__func__)
         # initially assume any arguments are positional
-        self.positional = spec.args[1:]
-        self.mapping    = []
-        self.casts      = []
+        self.positionals = spec.args[1:]
+        self.casts       = []
+        self.mapping     = []
 
         # look at arguments that have a default type or value assigned
         defaults = spec.defaults
@@ -31,11 +31,12 @@ class _Signature:
             defaults = list(defaults)
             # segment positional arguments from the rest of the function signature
             offset = -len(defaults)
-            self.positional,self.mapping = self.positional[:offset],self.positional[offset:]
+            self.positionals,self.mapping = self.positionals[:offset],self.positionals[offset:]
+
             # treat optional arguments with a default type as a required positional argument that is cast
             while defaults:
                 # stop on first non-type default value
-                if not isinstance(defaults[0], type):
+                if defaults[0] != None and not isinstance(defaults[0], type):
                     break
                 # remote it from the optional arguments
                 name = self.mapping.pop(0)
@@ -46,22 +47,25 @@ class _Signature:
             # arguments with a boolean default of True get their name inverted
             for idx,default in enumerate(defaults):
                 if default is True:
-                    self.mapping[idx] = 'no-' + self.mapping[idx]
+                    self.mapping[idx] = 'no_' + self.mapping[idx]
 
         # store the remaining default values
         self.defaults = defaults
         # allow commands to take a arbitrary number of arguments
         self.varargs = True if spec.varargs else False
 
-
 class Shell:
     prompt = '->> '
     true_values  = [ 't', 'true',  'y', 'yes', '1', 'on'  ]
     false_values = [ 'f', 'false', 'n', 'no',  '0', 'off' ]
 
-    def __init__(self):
+    def __init__(self, *args, **kwds):
         self._signatures = {}
         self.__parse_shell_commands(self)
+        self.initialize(*args, **kwds)
+
+    def initialize(self, *args, **kwds):
+        'override to initialize'
 
     def __parse_shell_commands(self, obj):
         # iterate over the instance members
@@ -94,10 +98,10 @@ class Shell:
                 try:
                     line = input(self.prompt)
                 except KeyboardInterrupt:
-                    print()
+                    _.writeln()
                     continue
                 except EOFError:
-                    print()
+                    _.writeln()
                     break
                 try:
                     stop = self.process(line)
@@ -107,6 +111,8 @@ class Shell:
             readline.set_completer(self.old_completer)
 
     def process(self, original):
+        'parse a command and execute it'
+
         # strip and split the original input
         line = original.strip().split()
         # do nothing on empty line
@@ -134,12 +140,12 @@ class Shell:
             if not line:
                 raise _.error('Missing command: %s', ' '.join(parent))
 
-        positional = []
-        optional   = []
-        varargs    = []
+        positionals = []
+        optionals   = []
+        varargs     = []
 
         if signature.defaults:
-            optional = list(signature.defaults)
+            optionals = list(signature.defaults)
 
         casts = list(signature.casts)
         stop = False
@@ -150,7 +156,7 @@ class Shell:
                 if not current:
                     stop = True
                     continue
-
+                current = current.replace('-', '_')
                 try:
                     idx = signature.mapping.index(current)
                 except ValueError:
@@ -171,32 +177,43 @@ class Shell:
                         except:
                             raise _.error('Invalid argument for %s: "%s"', _type.__name__, value)
 
-                optional[idx] = value
+                optionals[idx] = value
             else:
-                if len(positional) < len(signature.positional):
-                    positional.append(current)
+                if len(positionals) < len(signature.positionals):
+                    positionals.append(current)
                 else:
-                    if casts:
-                        name,cast = casts.pop(0)
-                        try:
-                            if cast == bool:
-                                if current.lower() in self.true_values:
-                                    current = True
-                                elif current.lower() in self.false_values:
-                                    current = False
-                                else:
-                                    raise ValueError
-                            value = cast(current)
-                        except:
-                            raise _.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
-                        positional.append(value)
-                    else:
+                    if not casts:
                         varargs.append(current)
+                    else:
+                        name,cast = casts.pop(0)
+                        print('###', name, cast)
+                        if cast is None: #name.startswith('_'):
+                            positionals.append(current)
+                        else:
+                            try:
+                                if cast == bool:
+                                    if current.lower() in self.true_values:
+                                        current = True
+                                    elif current.lower() in self.false_values:
+                                        current = False
+                                    else:
+                                        raise ValueError
+                                positionals.append(cast(current))
+                            except:
+                                raise _.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
 
-        if len(positional) < len(signature.positional):
-            missing = signature.positional[len(positional):]
+
+        if len(positionals) < len(signature.positionals):
+            missing = signature.positionals[len(positionals):]
             missing += [n for n,c in casts]
             raise _.error('Missing arguments: %s', ' '.join(missing))
+
+        while casts:
+            name,cast = casts[0]
+            if cast is not None: #not name.startswith('_'):
+                break
+            positionals.append(cast)
+            casts.pop(0)
 
         if casts:
             missing = [n for n,c in casts]
@@ -211,13 +228,13 @@ class Shell:
         self.rows = _terminal_size.lines
 
         # concatenate arguments to pass to shell function
-        args = positional + optional + varargs
+        args = positionals + optionals + varargs
         signature.func(*args)
 
     def complete(self, text, state):
         def add_args(signature):
             for arg in signature.mapping:
-                arg = '--' + arg
+                arg = '--' + arg.replace('_', '-')
                 if arg.startswith(text):
                     self.completion_matches.append(arg+' ')
 
@@ -230,7 +247,7 @@ class Shell:
                 # pop the command name
                 command = line.pop(0).lower()
                 # get the signature
-                signature = obj._signatures.get(command, None)
+                signature = obj._signatures.get(command)
                 if not signature:
                     return None
                 # if a signature then return completer
@@ -268,3 +285,62 @@ class Shell:
             obj = self
         text = text.lower()
         return [n + ' ' for n in obj._signatures if n.startswith(text)]
+
+    def shell_help(self, *commands):
+        signatures = self._signatures
+        _commands = list(commands)
+        while _commands:
+            command = _commands.pop(0)
+            signature = signatures.get(command)
+            if not signature:
+                raise _.error('Unknown command: %s', ' '.join(commands))
+            # is it a signature?
+            if isinstance(signature, _Signature):
+                _.writeln.blue('%s', ' '.join(commands))
+                _.writeln(' %s', signature.func.__doc__)
+                _.writeln()
+                return
+            # otherwise it is a "parent_" class
+            signatures = signature._signatures
+
+        commands = []
+        parents  = []
+        max_name = 0
+        for command_name,signature in  signatures.items():
+            max_name = max(max_name, len(command_name))
+            if isinstance(signature, _Signature):
+                commands.append((command_name,signature.func.__doc__))
+            else:
+                parents.append((command_name,signature.__doc__))
+
+        fmt = ' %%-%ds - %%s' % max_name
+        if parents:
+            _.writeln.blue(' Classes')
+            for name,help in parents:
+                if help is None: help = ''
+                _.writeln(fmt, name, help)
+            _.writeln()
+
+        if commands:
+            _.writeln.blue(' Commands')
+            for name,help in commands:
+                if help is None: help = ''
+                _.writeln(fmt, name, help)
+            _.writeln()
+
+    def complete_help(self, line, text, position):
+        obj = self
+        while True:
+            if not line:
+                return self.__complete_commands(line, text, position, obj=obj)
+            # pop the command name
+            command = line.pop(0).lower()
+            # get the signature
+            signature = obj._signatures.get(command)
+            if not signature:
+                return []
+            # if a signature then stop
+            if isinstance(signature, _Signature):
+                return []
+            # drill down to the next level
+            obj = signature

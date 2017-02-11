@@ -1,5 +1,9 @@
 
 class basic(object):
+    def __init__(self, name):
+        self._name  = name
+        self._value = getattr(self, name, None)
+
     reset     = '\033[0m'
     bright    = '\033[1m'
     dim       = '\033[2m'
