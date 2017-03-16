@@ -13,6 +13,10 @@ except ImportError:
     sys.stderr.write('Missing readline package\n')
     sys.exit(-1)
 
+try:
+    input = raw_input
+except NameError:
+    pass
 
 class _Signature:
     def __init__(self, func):
@@ -232,9 +236,13 @@ class Shell:
             raise _.error('Too many arguments: %s', ' '.join(varargs))
 
         # let functions know about the size of the terminal
-        _terminal_size = os.get_terminal_size()
-        self.cols = _terminal_size.columns
-        self.rows = _terminal_size.lines
+        if hasattr(os, 'get_terminal_size'):
+            _terminal_size = os.get_terminal_size()
+            self.cols = _terminal_size.columns
+            self.rows = _terminal_size.lines
+        else:
+            self.cols = 80
+            self.rows = 24
 
         # concatenate arguments to pass to shell function
         args = positionals + optionals + varargs
