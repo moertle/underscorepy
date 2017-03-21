@@ -20,10 +20,12 @@ class AbstractPb(GeneratedProtocolMessageType, abc.ABCMeta):
     'Allow the mixing on Messages and Pb'
 
 
-def wrap(module, wrapper=Pb):
+def wrap(modroot, module, wrapper=Pb):
     for name in module.DESCRIPTOR.message_types_by_name:
         msg = getattr(module, name)
         yield wrap_descriptor(msg.DESCRIPTOR, wrapper)
+
+    wrap_enums(modroot, module)
 
 
 def wrap_descriptor(descriptor, wrapper=Pb):
@@ -31,8 +33,16 @@ def wrap_descriptor(descriptor, wrapper=Pb):
         'DESCRIPTOR' : descriptor,
         'MESSAGE'    : _iterate(descriptor, wrapper),
     }
+    wrapped_msg = AbstractPb(descriptor.name, (Message,wrapper), dct)
+    wrap_enums(wrapped_msg, wrapped_msg)
+    return wrapped_msg
 
-    return AbstractPb(descriptor.name, (Message,wrapper), dct)
+
+def wrap_enums(target, msg):
+    for name in msg.DESCRIPTOR.enum_types_by_name:
+        enum = getattr(msg, name)
+        enum_type = type(name, (object,), dict((n,v.number) for n,v in enum.DESCRIPTOR.values_by_name.items()))
+        setattr(target, name, enum_type)
 
 
 def load(modroot, wrapper=Pb):
@@ -60,12 +70,9 @@ def load(modroot, wrapper=Pb):
             version = options.Extensions[options_pb2.version] or None
             project = options.Extensions[options_pb2.project] or None
 
-            for message in _.pb.wrap(module, wrapper):
-                if version:
-                    message.VERSION = version
-
-                if project:
-                    message.PROJECT = project
+            for message in wrap(modroot, module, wrapper):
+                message.VERSION = version
+                message.PROJECT = project
 
                 path =  message.DESCRIPTOR.full_name.rsplit('.',1)
                 if len(path) > 1:
@@ -86,7 +93,7 @@ def _iterate(descriptor, wrapper=Pb):
 
     d = wrapper.__dictcls__()
     d['name']      = descriptor.name
-    d['full_name'] = descriptor.full_name.replace('.', '_')
+    d['full_name'] = descriptor.full_name
 
     if options.HasExtension(options_pb2.display):
         d['display'] = str(options.Extensions[options_pb2.display])
@@ -132,7 +139,10 @@ def _iterate(descriptor, wrapper=Pb):
             if field.message_type.full_name == descriptor.full_name:
                 f['recursive'] = True
             else:
-                wrap_descriptor(field.message_type, wrapper)
-                f['msg'] = _iterate(field.message_type)
+                sub_msg = wrap_descriptor(field.message_type, wrapper)
+                f['msg'] = sub_msg.MESSAGE
+
+        elif field.type is field.TYPE_ENUM:
+            f['enum'] = field.enum_type.full_name
 
     return d
