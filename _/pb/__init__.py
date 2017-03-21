@@ -31,11 +31,11 @@ def wrap(modroot, module, wrapper=Pb):
 def wrap_descriptor(descriptor, wrapper=Pb):
     dct = {
         'DESCRIPTOR' : descriptor,
-        'MESSAGE'    : _iterate(descriptor, wrapper),
     }
-    wrapped_msg = AbstractPb(descriptor.name, (Message,wrapper), dct)
-    wrap_enums(wrapped_msg, wrapped_msg)
-    return wrapped_msg
+    pb_msg = AbstractPb(descriptor.name, (Message,wrapper), dct)
+    pb_msg.MESSAGE = _iterate(pb_msg, descriptor, wrapper)
+    wrap_enums(pb_msg, pb_msg)
+    return pb_msg
 
 
 def wrap_enums(target, msg):
@@ -88,7 +88,7 @@ def load(modroot, wrapper=Pb):
     return messages
 
 
-def _iterate(descriptor, wrapper=Pb):
+def _iterate(target, descriptor, wrapper=Pb):
     options = descriptor.GetOptions()
 
     d = wrapper.__dictcls__()
@@ -140,6 +140,7 @@ def _iterate(descriptor, wrapper=Pb):
                 f['recursive'] = True
             else:
                 sub_msg = wrap_descriptor(field.message_type, wrapper)
+                setattr(target, sub_msg.DESCRIPTOR.name, sub_msg)
                 f['msg'] = sub_msg.MESSAGE
 
         elif field.type is field.TYPE_ENUM:
