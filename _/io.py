@@ -53,7 +53,7 @@ def hexdump(blob, width=16, offset=0):
             else:
                 _.printf.WHITE.bright('%c', c)
 
-        _.printf('\n')
+        _.printf.reset('\n')
         offset += width
 
 
