@@ -102,7 +102,7 @@ def _iterate(target, descriptor, wrapper=Pb):
         d['msg_type'] = str(options.Extensions[options_pb2.msg_type])
 
     if options.HasExtension(storage_pb2.table):
-        d['table'] = options.Extensions[storage_pb2.table]
+        target.table = options.Extensions[storage_pb2.table]
 
     fkey = options.Extensions[storage_pb2.fkey]
     if fkey:

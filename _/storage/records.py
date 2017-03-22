@@ -124,7 +124,7 @@ class Record(collections.MutableMapping):
 
     @property
     def json(self):
-        return json.dumps(dict(self.record), separators=(',', ':'))
+        return json.dumps(dict(self.record), separators=(',',':'))
 
 # Direct access of records
 

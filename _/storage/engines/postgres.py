@@ -38,11 +38,6 @@ class Postgres(Storage):
         sanitized = re.sub('password=[^ ]*', 'password=****', dsn)
         logging.info('DSN: %s', sanitized)
 
-        # First, use psycopg2 to test the connection parameters
-        conn = psycopg2.connect(dsn=dsn)
-        conn.close()
-
-        # If we get here, the connection was good so momoko should be able to connect
         ioloop = tornado.ioloop.IOLoop.instance()
 
         self.db = momoko.Pool(
@@ -54,15 +49,14 @@ class Postgres(Storage):
             ioloop=ioloop
             )
 
-        def momoko_connect_callback(f):
-            try:
-                res = f.result()
-                logging.info('Momoko connection success')
-            except Exception as e:
-                logging.exception('Momoko connection failure %s', e)
-
         future = self.db.connect()
-        ioloop.add_future(future, momoko_connect_callback)
+        ioloop.add_future(future, lambda f: ioloop.stop())
+        ioloop.start()
+        try:
+            future.result()
+            logging.info('Momoko connection success')
+        except Exception as e:
+            logging.exception('Momoko connection failure: %s', e)
 
     def Initialize(self):
         pass
