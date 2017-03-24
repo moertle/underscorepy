@@ -41,12 +41,12 @@ class Postgres(Storage):
         ioloop = tornado.ioloop.IOLoop.instance()
 
         self.db = momoko.Pool(
-            dsn=dsn,
-            size=5,
-            max_size=10,
-            setsession=("SET TIME ZONE UTC",),
+            dsn        = dsn,
+            size       = 5,
+            max_size   = 10,
+            setsession = ("SET TIME ZONE UTC",),
+            ioloop     = ioloop,
             raise_connect_errors=True,
-            ioloop=ioloop
             )
 
         future = self.db.connect()
@@ -54,9 +54,8 @@ class Postgres(Storage):
         ioloop.start()
         try:
             future.result()
-            logging.info('Momoko connection success')
         except Exception as e:
-            logging.exception('Momoko connection failure: %s', e)
+            raise _.error('Connection error: %s', e)
 
     def Initialize(self):
         pass

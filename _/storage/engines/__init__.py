@@ -21,19 +21,20 @@ class Storage(object):
             if instance != name:
                 instance_config.update(_.settings.config.items(instance))
 
-            critical = instance_config.pop('critical', '')
-            if critical.lower() in ['t', 'y', 'true', 'yes', '1']:
-                critical = True
-            else:
+            critical = instance_config.pop('critical', 'true')
+            if critical.lower() in ['f', 'false', 'n', 'no', '0']:
                 critical = False
+            else:
+                critical = True
 
             try:
                 engine = engineCls(**instance_config)
             except Exception as e:
-                logging.error('Unable to connect to database: %s', instance)
                 logging.debug('%s', e)
                 if critical:
-                    raise _.error('Database marked as critical')
+                    raise _.error('Unable to connect to database: %s', instance)
+                else:
+                    logging.error('Unable to connect to database: %s', instance)
                 continue
 
             _.storage.databases[instance] = engine
