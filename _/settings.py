@@ -110,14 +110,6 @@ def load(**kwds):
         root.setLevel(logging.DEBUG)
         logfile.setLevel(logging.DEBUG)
 
-    # call this here if there is no daemon option
-    if not hasattr(_.settings.args, 'daemon'):
-        components()
-
-    return
-
-
-def components():
     # check if the config file specifies components
     if _.settings.config.has_section('components'):
         for name in _.components.Registry:
