@@ -32,8 +32,6 @@ class Mongo(Storage):
             self.fs  = None
             self.mfs = None
 
-    def Initialize(self):
-        return
 
     def Sync(self):
         return

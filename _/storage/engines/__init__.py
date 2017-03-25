@@ -14,6 +14,7 @@ class Storage(object):
 
     @classmethod
     def _pyLoad(cls, name, engineCls, config):
+        # support multiple instances or fallback to the name of the driver
         instances = config.pop('instances', name)
 
         for instance in [i.strip() for i in instances.split(',')]:
@@ -28,13 +29,13 @@ class Storage(object):
                 critical = True
 
             try:
-                engine = engineCls(**instance_config)
+                _.storage.instances[instance] = engineCls(**instance_config)
             except Exception as e:
-                logging.debug('%s', e)
                 if critical:
-                    raise _.error('Unable to connect to database: %s', instance)
+                    raise _.error('Unable to connect to %s: %s', instance, e)
                 else:
-                    logging.error('Unable to connect to database: %s', instance)
+                    logging.error('Unable to connect to %s: %s', instance, e)
                 continue
 
-            _.storage.databases[instance] = engine
+    def Initialize(self):
+        return
