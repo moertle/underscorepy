@@ -1,6 +1,7 @@
 
 import sys
 import os
+import signal
 import socket
 import logging
 
@@ -21,6 +22,9 @@ ioloop = tornado.ioloop.IOLoop.instance()
 
 class Application(tornado.web.Application):
     def __init__(self, section='server'):
+        signal.signal(signal.SIGINT,  self.SignalHandler)
+        signal.signal(signal.SIGTERM, self.SignalHandler)
+
         self.websockets = set()
 
         section = _.settings.args.name or section
@@ -118,3 +122,7 @@ class Application(tornado.web.Application):
 
     def Stop(self):
         ioloop.stop()
+
+    def SignalHandler(self, signum, frame):
+        logging.info('Terminating')
+        self.Stop()
