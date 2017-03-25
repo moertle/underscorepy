@@ -3,12 +3,15 @@ import tornado.web
 import tornado.websocket
 
 
-class Broadcast(tornado.websocket.WebSocketHandler):
+class Base(tornado.websocket.WebSocketHandler):
     def initialize(self, websockets=None):
         if websockets is None:
             self.websockets = self.application.websockets
         else:
             self.websockets = websockets
+
+    def check_origin(self, origin):
+        return True
 
     def open(self):
         self.stream.set_nodelay(True)
@@ -18,11 +21,6 @@ class Broadcast(tornado.websocket.WebSocketHandler):
         if msg == 'ping':
             return
 
-        for ws in self.websockets:
-            if ws is self:
-                continue
-            ws.write_message(msg)
-
     def on_close(self):
         try:
             self.websockets.remove(self)
@@ -30,9 +28,19 @@ class Broadcast(tornado.websocket.WebSocketHandler):
             pass
 
 
-class Protected(Broadcast):
+class Protected(Base):
     def open(self):
         if not self.get_secure_cookie('_uid'):
             raise tornado.web.HTTPError(403)
+        super(Base, self).open()
 
-        Broadcast.open(self)
+
+class Broadcast(Base):
+    def on_message(self, msg):
+        if msg == 'ping':
+            return
+
+        for ws in self.websockets:
+            if ws is self:
+                continue
+            ws.write_message(msg)
