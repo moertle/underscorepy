@@ -46,7 +46,8 @@ class Postgres(Storage):
             max_size   = 10,
             setsession = ("SET TIME ZONE UTC",),
             ioloop     = ioloop,
-            raise_connect_errors=True,
+            cursor_factory = psycopg2.extras.DictCursor,
+            raise_connect_errors = True,
             )
 
         future = self.db.connect()
