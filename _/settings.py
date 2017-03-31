@@ -16,12 +16,6 @@ import _
 
 argparser = argparse.ArgumentParser()
 
-argparser.add_argument('--ini', '-I',
-    help='Specify additional ini file')
-
-argparser.add_argument('--debug', '-D',
-    action='store_true',
-    help='Print verbose debugging information')
 
 def log():
     logging.basicConfig(
@@ -43,6 +37,14 @@ class Paths(object):
 
 
 def load(**kwds):
+    argparser.add_argument('--ini', '-I',
+        metavar='<path>',
+        help='Specify additional ini file')
+
+    argparser.add_argument('--debug', '-D',
+        action='store_true',
+        help='Print verbose debugging information')
+
     # inspect who called this function
     frames = inspect.getouterframes(inspect.currentframe())
     # get the caller frame
@@ -69,7 +71,7 @@ def load(**kwds):
 
     _.paths = Paths(root=root, namespace=namespace)
 
-    _.settings.args = argparser.parse_args()
+    _.settings.args,_.settings.args_remaining = argparser.parse_known_args()
 
     # if settings is not passed in use the supplied or derived namespace
     settings = kwds.get('settings', namespace or script_name)
