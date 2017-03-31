@@ -23,11 +23,12 @@ argparser.add_argument('--debug', '-D',
     action='store_true',
     help='Print verbose debugging information')
 
-logging.basicConfig(
-    format  = '%(asctime)s %(levelname)-8s %(message)s',
-    datefmt = '%Y-%m-%d %H:%M:%S',
-    level   = logging.INFO
-    )
+def log():
+    logging.basicConfig(
+        format  = '%(asctime)s %(levelname)-8s %(message)s',
+        datefmt = '%Y-%m-%d %H:%M:%S',
+        level   = logging.INFO
+        )
 
 
 class Paths(object):
@@ -91,24 +92,26 @@ def load(**kwds):
     if not ok:
         raise _.error('Unable to read config file(s): %s', ini_files)
 
-    file_name = script_name + '.log'
-    full_path = _.paths('var', file_name)
-    logfile = logging.FileHandler(full_path)
-    logfile.setLevel(logging.INFO)
-    logfile.setFormatter(
-        logging.Formatter(
-            fmt = '%(asctime)s %(levelname)-8s %(message)s',
-            datefmt = '%Y-%m-%d %H:%M:%S',
+    # underscore apps can explicit turn off logging
+    if _.settings.config.getboolean('_', 'logging', fallback=True):
+        file_name = script_name + '.log'
+        full_path = _.paths('var', file_name)
+        logfile = logging.FileHandler(full_path)
+        logfile.setLevel(logging.INFO)
+        logfile.setFormatter(
+            logging.Formatter(
+                fmt = '%(asctime)s %(levelname)-8s %(message)s',
+                datefmt = '%Y-%m-%d %H:%M:%S',
+                )
             )
-        )
 
-    # add the handlers to the logger
-    root = logging.getLogger()
-    root.addHandler(logfile)
+        # add the handlers to the logger
+        root = logging.getLogger()
+        root.addHandler(logfile)
 
-    if _.settings.args.debug:
-        root.setLevel(logging.DEBUG)
-        logfile.setLevel(logging.DEBUG)
+        if _.settings.args.debug:
+            root.setLevel(logging.DEBUG)
+            logfile.setLevel(logging.DEBUG)
 
     # check if the config file specifies components
     if _.settings.config.has_section('components'):
