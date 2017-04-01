@@ -27,8 +27,6 @@ class Application(tornado.web.Application):
 
         self.websockets = set()
 
-        section = _.settings.args.name or section
-
         # get the interface and port to listen on
         try:
             self.addr = _.settings.args.address or _.settings.config.get(section, 'address')
@@ -45,14 +43,11 @@ class Application(tornado.web.Application):
         # load the cookie secret used to encrypt cookies
         cookie_path = _.paths('etc', 'cookie.secret')
 
-        if _.settings.args.newcookie:
+        try:
+            with open(cookie_path, 'rb') as fp:
+                cookie_secret = fp.read(44)
+        except IOError:
             cookie_secret = _.web.util.generateCookieSecret(cookie_path)
-        else:
-            try:
-                with open(cookie_path, 'rb') as fp:
-                    cookie_secret = fp.read(44)
-            except IOError:
-                cookie_secret = _.web.util.generateCookieSecret(cookie_path)
 
         # SSL Options
         if not hasattr(self, 'ssl_options'):
