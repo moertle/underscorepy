@@ -9,9 +9,11 @@ PBCC_FILES  := $(patsubst %.proto, %.pb.cc,  $(PROTO_FILES))
 all: $(PB2_FILES) $(PBCC_FILES)
 
 _/pb/%_pb2.py: _/pb/%.proto
+	@echo $< '=>' $@
 	@(cd _/pb; $(PROTOC) $(PROTOFLAGS) --python_out=. `basename $<`)
 
 _/pb/%.pb.cc: _/pb/%.proto
+	@echo $< '=>' $@
 	@$(PROTOC) $(PROTOFLAGS) --cpp_out=. $<
 
 install: all
