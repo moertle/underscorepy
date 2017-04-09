@@ -29,7 +29,7 @@ setup(
         },
     install_requires = [
         'protobuf >= 3.2.0',
-        'tornado >= 4.4.2',
+        'tornado  >= 4.4.2',
         ],
     classifiers=[
         'Development Status :: 3 - Alpha',
