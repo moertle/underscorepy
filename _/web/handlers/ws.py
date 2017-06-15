@@ -18,8 +18,7 @@ class Base(tornado.websocket.WebSocketHandler):
         self.websockets.add(self)
 
     def on_message(self, msg):
-        if msg == 'ping':
-            return
+        pass
 
     def on_close(self):
         try:
@@ -37,9 +36,6 @@ class Protected(Base):
 
 class Broadcast(Base):
     def on_message(self, msg):
-        if msg == 'ping':
-            return
-
         for ws in self.websockets:
             if ws is self:
                 continue
