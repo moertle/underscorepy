@@ -16,6 +16,8 @@ class Sqlite(Storage):
     def __init__(self, path=None, schema=None):
         if path is None:
             path = ':memory:'
+        else:
+            doesExist = os.path.isfile(path)
 
         try:
             self.conn = sqlite3.connect(path)
@@ -27,13 +29,13 @@ class Sqlite(Storage):
 
         self.cursor = self.conn.cursor()
 
-        if schema and not os.path.isfile(path):
+        if schema and not doesExist:
             if not os.path.isfile(schema):
                 schema = _.paths('etc', schema)
 
             if os.path.isfile(schema):
                 logging.debug('Attempt to load schema: %s', schema)
-                schema = open(schema, 'rb').read()
+                schema = open(schema, 'r').read()
                 self.cursor.executescript(schema)
                 self.conn.commit()
             else:
@@ -75,7 +77,7 @@ class Sqlite(Storage):
         statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(table, columns, placeholder)
 
         try:
-            self.cursor.execute(statement, values.values())
+            self.cursor.execute(statement, list(values.values()))
         except sqlite3.ProgrammingError as e:
             raise pyaas.error('Problem executing statement: %s', e)
         except sqlite3.IntegrityError as e:
@@ -89,7 +91,7 @@ class Sqlite(Storage):
         columns = ','.join(s + '=?' for s in values.keys())
         statement = 'UPDATE {0} SET {1} WHERE id=?'.format(table, columns, _id)
         try:
-            self.cursor.execute(statement, values.values() + [_id])
+            self.cursor.execute(statement, list(values.values()) + [_id])
         except sqlite3.ProgrammingError:
             raise pyaas.error('Problem executing statement')
 
