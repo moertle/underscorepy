@@ -15,9 +15,6 @@ setup(
     long_description   = open('README.rst').read(),
     packages = [
         '_',
-        '_.pb',
-        '_.pb.meta',
-        '_.pb.mongopb',
         '_.storage',
         '_.storage.engines',
         '_.web',
