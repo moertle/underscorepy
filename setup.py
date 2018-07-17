@@ -11,7 +11,7 @@ setup(
     version            = __version__,
     license            = __license__,
     url                = 'http://underscorepy.org',
-    description        = '_.py library',
+    description        = 'underscore library',
     long_description   = open('README.rst').read(),
     packages = [
         '_',

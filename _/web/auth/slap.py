@@ -11,7 +11,7 @@ from . import Authentication
 try:
     import ldap
 except ImportError:
-    raise _.py.error('Missing LDAP module')
+    raise _.error('Missing LDAP module')
 
 class Slap(Authentication):
     def get(self):
