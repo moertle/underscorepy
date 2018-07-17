@@ -12,7 +12,6 @@ _domains = []
 
 
 class Google(Authentication, tornado.auth.GoogleMixin):
-
     @classmethod
     def initialize(cls, *args, **kwargs):
         _domains.extend([d for d in kwargs.get('domains', '').split(' ') if d])

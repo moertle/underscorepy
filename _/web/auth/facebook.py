@@ -6,9 +6,6 @@ import _
 import tornado.auth
 import tornado.web
 
-#
-# Facebook Authentication
-#
 
 FBURL = '%s://%s/login/facebook?next=%s'
 

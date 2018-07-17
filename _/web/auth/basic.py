@@ -1,41 +1,24 @@
 
-import os
-import hashlib
-import base64
+import functools
+import binascii
 
 import _
 
-from . import Authentication
+def basic(realm='Authentication'):
+    def basic_auth(method):
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            auth = self.request.headers.get('Authorization', '')
+            if auth.startswith('Basic '):
+                auth = binascii.a2b_base64(auth[6:]).decode('utf-8')
+                username,password = auth.split(':', 1)
+                if password == _.settings.args.password:
+                    return method(self, *args, **kwargs)
 
-# TODO: this is opening the file and scanning it for every login, which is fine
-#       for small projects with a limited number of users.  Long term this
-#       this should be updated to support faster lookups
+            self.set_status(401)
+            self.set_header('WWW-Authenticate', 'Basic realm=%s' % realm)
+            self.finish()
 
-# Passwords can be managed with Apache's htpasswd program
+        return wrapper
+    return basic_auth
 
-class Basic(Authentication):
-    def get(self):
-        self.render('login.html')
-
-    def post(self):
-        username = self.get_argument('username', 'admin')
-        password = self.get_argument('password', '')
-        password = '{SHA}' + base64.b64encode(hashlib.sha1(password).digest())
-
-        path = _.py.paths('etc', _.settings.config.get('basic', 'path'))
-        fp = open(path, 'r')
-        for line in fp:
-            if not line:
-                continue
-            entry,hash = line.split(':', 1)
-
-            if entry != username:
-                continue
-
-            if hash.rstrip() != password:
-                break
-
-            self.set_secure_cookie('_uid', username)
-            break
-
-        self.redirect(self.get_argument('next', '/'))
