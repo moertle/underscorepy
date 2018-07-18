@@ -68,20 +68,20 @@ class Application(tornado.web.Application):
         # useful during development
         if _.settings.args.debug:
             self.settings['debug'] = True
-
             self.patterns.append(
                 ( r'/src/(.*)', _.web.handlers.Source ),
                 )
 
         if 'auth' in _.components.Registry:
+            component = None
             for name in _.components.Registry['auth']:
                 component = _.components.Registry['auth'][name]
                 self.patterns.extend([(component.URL, component)])
 
-            self.patterns.extend([( r'/logout', _.web.auth.Logout )])
-
-            logging.debug('Setting default login URL to: %s', component.URL)
-            self.settings['login_url'] = component.URL
+            if component is not None:
+                self.patterns.extend([( r'/logout', _.web.auth.Logout )])
+                logging.debug('Setting default login URL to: %s', component.URL)
+                self.settings['login_url'] = component.URL
 
     def Listen(self, **kwds):
         # initialize here so patterns and settings can be extended by plugins

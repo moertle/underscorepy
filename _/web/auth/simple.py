@@ -18,11 +18,14 @@ class Simple(Authentication):
         self.render('login.html')
 
     def post(self):
-        username = self.get_argument('username', 'admin')
+        username = self.get_argument('username', '')
         password = self.get_argument('password', '')
-        password = '{SHA}' + base64.b64encode(hashlib.sha1(password).digest())
+        password = password.encode('utf-8')
+        password = b'{SHA}' + base64.b64encode(hashlib.sha1(password).digest())
+        password = password.decode('ascii')
 
         path = _.paths('etc', _.settings.config.get('simple', 'path'))
+
         fp = open(path, 'r')
         for line in fp:
             if not line:
