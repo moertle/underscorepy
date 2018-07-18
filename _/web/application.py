@@ -116,7 +116,7 @@ class Application(tornado.web.Application):
             client.write_message(msg)
 
     def Stop(self):
-        ioloop.stop()
+        ioloop.add_callback(ioloop.stop)
 
     def SignalHandler(self, signum, frame):
         logging.info('Terminating')
