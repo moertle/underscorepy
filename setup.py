@@ -25,8 +25,8 @@ setup(
         '_.pb': ['*.pb.*', '*.proto'],
         },
     install_requires = [
-        'protobuf >= 3.2.0',
-        'tornado  >= 4.4.2',
+        'protobuf >= 3.6.0',
+        'tornado  <  5.0.0',
         ],
     classifiers=[
         'Development Status :: 3 - Alpha',
