@@ -89,7 +89,7 @@ class Sqlite(Storage):
         columns = ','.join(s + '=?' for s in values.keys())
         statement = 'UPDATE {0} SET {1} WHERE id=?'.format(table, columns, _id)
         try:
-            self.cursor.execute(statement, values.values() + [_id])
+            self.cursor.execute(statement, list(values.values()) + [_id])
         except sqlite3.ProgrammingError:
             raise pyaas.error('Problem executing statement')
 
