@@ -75,11 +75,11 @@ class Sqlite(Storage):
         statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(table, columns, placeholder)
 
         try:
-            self.cursor.execute(statement, values.values())
+            self.cursor.execute(statement, list(values.values()))
         except sqlite3.ProgrammingError as e:
-            raise pyaas.error('Problem executing statement: %s', e)
+            raise _.error('Problem executing statement: %s', e)
         except sqlite3.IntegrityError as e:
-            raise pyaas.error('Integrity error: %s', e)
+            raise _.error('Integrity error: %s', e)
 
         if id_column not in values:
             values[id_column] = self.cursor.lastrowid
@@ -91,7 +91,7 @@ class Sqlite(Storage):
         try:
             self.cursor.execute(statement, list(values.values()) + [_id])
         except sqlite3.ProgrammingError:
-            raise pyaas.error('Problem executing statement')
+            raise _.error('Problem executing statement')
 
     def Remove(self, table, _id, id_column='id'):
         statement = 'DELETE FROM {0} WHERE {1} = ?'.format(table, id_column)
