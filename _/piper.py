@@ -2,13 +2,14 @@
 import logging
 import os
 import re
+import shlex
 import subprocess
 import tempfile
 import time
 
 
 class Piper(object):
-    CMD  = '/bin/sh'
+    CMD  = '/bin/sh -c'
     ARGS = ''
     DEFAULTS = {}
 
@@ -18,6 +19,9 @@ class Piper(object):
     def __init__(self, **kwds):
         # construct the command line template
         cmd = self.CMD + ' ' + self.ARGS
+
+        stdout = kwds.pop('stdout', os.devnull)
+        stdout = open(stdout, 'wb')
 
         # make a copy of the default arguments
         arguments = self.DEFAULTS.copy()
@@ -44,6 +48,7 @@ class Piper(object):
 
             fileObject = Piper.FileObject()
             fileObject.var = cmd[start:end]
+            fileObject.data = getattr(self, fileObject.var)
             inFiles.append(fileObject)
 
         # match any parameter that matches {out_*}
@@ -66,7 +71,9 @@ class Piper(object):
         # for each in parameter create the fifo named pipe
         for fileObject in inFiles:
             fileObject.fullPath = os.path.join(tmpdir, fileObject.var)
-            os.mkfifo(fileObject.fullPath)
+            fp = open(fileObject.fullPath, 'wb')
+            fp.write(self.encode(fileObject.data))
+            fp.close()
             arguments[fileObject.var] = fileObject.fullPath
 
         # for each out parameter create the fifo named pipe
@@ -78,7 +85,7 @@ class Piper(object):
         # apply the dictionary to the command line template
         cmd = cmd.format(**arguments)
         logging.info('%s', cmd)
-        cmd = cmd.split(None)
+        cmd = shlex.split(cmd)
 
         # setup the environment variables
         env = os.environ.copy()
@@ -86,27 +93,21 @@ class Piper(object):
         # call the OpenSSl command with the provided arguments
         process = subprocess.Popen(
             cmd,
-            stdout = open(os.devnull, 'w'),
-            stderr = open(os.devnull, 'w'),
+            stdout = stdout,
+            stderr = stdout,
             env    = env
             )
-
-        # write the data for all the {in_*} parameters
-        for fileObject in inFiles:
-            fileObject.fp = open(fileObject.fullPath, 'wb')
-            fileObject.fp.write(fileObject.data)
 
         # read the data for all the {out_*} parameters
         for fileObject in outFiles:
             fileObject.fp = open(fileObject.fullPath, 'rb')
-            fileObject.data = fileObject.fp.read()
+            fileObject.data = self.decode(fileObject.fp.read())
 
         # let the process terminate cleanly
         process.wait()
 
-        # close all the fifo named pipes
+        # remove the temp input files
         for fileObject in inFiles:
-            fileObject.fp.close()
             os.remove(fileObject.fullPath)
 
         # close all the fifo named pipes
@@ -121,32 +122,8 @@ class Piper(object):
         for fileObject in outFiles:
             setattr(self, fileObject.var[4:], fileObject.data)
 
+    def encode(self, data):
+        return data.encode('utf-8')
 
-
-#
-#class DHParams(Piper):
-#    ARGS = 'dhparam -out {out_dh} {keysize}'
-#    DEFAULTS = {
-#        'keysize' : Piper.KEY_SIZE,
-#    }
-#
-#
-#class InitCA(Piper):
-#    ARGS = 'req -batch -days {days} -nodes -new -newkey rsa:{keysize} -x509 -keyout {out_key} -out {out_crt}'
-#    DEFAULTS = {
-#        'keysize' : Piper.KEY_SIZE,
-#        'days'    : 3650,
-#    }
-#
-#
-#dhparams = DHParams()
-#initca = InitCA(keysize=2048)
-#
-#print
-#print dhparams.dh
-#print
-#print initca.keysize
-#print initca.key
-#print initca.crt
-#print
-#
+    def decode(self, data):
+        return data.decode('utf-8')
