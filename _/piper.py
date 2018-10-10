@@ -17,6 +17,8 @@ class Piper(object):
         __slots__ = ['var', 'fullPath', 'fp', 'data']
 
     def __init__(self, **kwds):
+        self.precommand()
+
         # construct the command line template
         cmd = self.CMD + ' ' + self.ARGS
 
@@ -122,8 +124,16 @@ class Piper(object):
         for fileObject in outFiles:
             setattr(self, fileObject.var[4:], fileObject.data)
 
+        self.postcommand()
+
     def encode(self, data):
         return data.encode('utf-8')
 
     def decode(self, data):
         return data.decode('utf-8')
+
+    def precommand(self):
+        pass
+
+    def postcommand(self):
+        pass
