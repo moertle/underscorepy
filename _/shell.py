@@ -18,6 +18,7 @@ try:
 except NameError:
     pass
 
+
 class _Signature:
     def __init__(self, func):
         # save a reference to the function
@@ -58,6 +59,7 @@ class _Signature:
         self.defaults = defaults
         # allow commands to take a arbitrary number of arguments
         self.varargs = True if spec.varargs else False
+
 
 class Shell:
     prompt = '->> '
@@ -214,7 +216,6 @@ class Shell:
                                 positionals.append(cast(current))
                             except:
                                 raise _.error('Invalid %s for %s: "%s"', cast.__name__, name, current)
-
 
         if len(positionals) < len(signature.positionals):
             missing = signature.positionals[len(positionals):]

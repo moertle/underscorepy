@@ -51,9 +51,9 @@ class Postgres(Storage):
             )
 
         future = self.db.connect()
-        ioloop.add_future(future, lambda f: ioloop.stop())
-        ioloop.start()
         try:
+            ioloop.add_future(future, lambda f: ioloop.stop())
+            ioloop.start()
             future.result()
         except Exception as e:
             raise _.error('Connection error: %s', e)

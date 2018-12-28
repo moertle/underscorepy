@@ -19,7 +19,6 @@ def package(main, includes):
             for filename in filenames:
                 path = os.path.join(base, filename)
                 arcname = path[len(trim)+1:]
-                print(path, '\n---', arcname)
                 zf.write(path, arcname)
     zf.close()
 
