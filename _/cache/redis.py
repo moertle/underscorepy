@@ -6,6 +6,10 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
+import os
+import base64
+import json
+
 import _
 
 try:
@@ -28,6 +32,13 @@ class Redis(_.cache.Cache):
     async def close(self):
         await self.connection.close()
         self.connection = None
+
+    async def cookie_secret(self):
+        secret = await self.connection.get('cookie_secret')
+        if not secret:
+            secret = base64.b64encode(os.urandom(32))
+            await self.connection.set('cookie_secret', secret)
+        return secret
 
     async def save_session(self, session_id, session):
         async with self.connection.pipeline(transaction=True) as pipe:

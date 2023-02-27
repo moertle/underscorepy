@@ -47,6 +47,7 @@ class Application(tornado.web.Application):
 
         self.patterns   = []
         self.login_urls = []
+        self.sessions   = None
 
         await _.components.load('cache')
         await _.components.load('database')
@@ -63,7 +64,7 @@ class Application(tornado.web.Application):
         await self.initialize()
 
         if 'cookie_secret' not in self.settings:
-            self.settings['cookie_secret'] = await self.cookieSecret()
+            self.settings['cookie_secret'] = await self.cookie_secret()
 
         for instance,cls in _.components.login.items():
             self.login_urls.append((f'/login/{instance}', cls))
@@ -108,9 +109,10 @@ class Application(tornado.web.Application):
     async def initialize(self):
         'underscore apps should override this function'
 
-    async def cookieSecret(self):
+    async def cookie_secret(self):
         'underscore apps should override this function'
-        return os.urandom(32)
+        if self.sessions is not None:
+            return await self.sessions.cookie_secret()
 
     async def onLogin(self, handler, user):
         'underscore apps can override this function'

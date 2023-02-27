@@ -12,10 +12,7 @@ class Cache:
     async def close(self):
         pass
 
-    async def save_cookie(self, cookie):
-        raise NotImplementedError
-
-    async def load_cookie(self):
+    async def cookie_secret(self):
         raise NotImplementedError
 
     async def save_session(self, session_id, session):
