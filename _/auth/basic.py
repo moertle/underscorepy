@@ -26,7 +26,7 @@ def basic(realm='Authentication'):
                 if not component:
                     raise tornado.web.HTTPError(500, 'No component specified for basic auth')
                 try:
-                    login = _.components.login[component]
+                    login = _.login[component]
                 except KeyError:
                     raise tornado.web.HTTPError(500, 'Invalid component specified for basic auth')
                 success = await login.check(username, password)

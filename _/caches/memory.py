@@ -12,7 +12,7 @@ import json
 import _
 
 
-class Memory(_.cache.Cache):
+class Memory(_.caches.Cache):
     async def init(self, **kwds):
         self.mem = {}
 

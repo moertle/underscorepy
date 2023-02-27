@@ -17,7 +17,7 @@ except ImportError:
     raise _.error('Missing psycopg (PostgreSQL) module')
 
 
-class Postgres(_.database.Database):
+class Postgres(_.databases.Database):
     async def init(self, **kwds):
         self.dsn = ' '.join('{0}={1}'.format(k, v) for k,v in kwds.items())
 
@@ -26,7 +26,7 @@ class Postgres(_.database.Database):
 
         try:
             self.conn = await psycopg.AsyncConnection.connect(self.dsn,
-                #row_factory=psycopg.rows.args_row(z)
+                row_factory=psycopg.rows.dict_row
                 )
         except psycopg.OperationalError as e:
             raise _.error('%s', e) from None

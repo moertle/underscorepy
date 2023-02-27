@@ -14,9 +14,9 @@ import tornado.web
 import _
 
 
-cache    = {}
-database = {}
-login    = {}
+_.cache    = {}
+_.database = {}
+_.login    = {}
 
 async def load(componentType):
     if componentType not in _.config:

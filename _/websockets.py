@@ -40,7 +40,6 @@ class Protected(Base):
             raise tornado.web.HTTPError(403)
 
         session = await self.application.sessions.load_session(session_id)
-        print(session)
 
 
 class EchoMixin:
@@ -49,5 +48,3 @@ class EchoMixin:
             if ws is self:
                 continue
             ws.write_message(msg)
-
-

@@ -18,7 +18,7 @@ import tornado.web
 import _
 
 
-class Db(_.login.Login):
+class Db(_.logins.Login):
     table    = 'users'
     username = 'username'
     password = 'password'
@@ -29,7 +29,7 @@ class Db(_.login.Login):
             password = _.auth.simple_hash(username + password)
 
         try:
-            instance = _.components.database[cls.database]
+            instance = _.database[cls.database]
         except KeyError:
             raise tornado.web.HTTPError(500, f'database "{cls.database}" not defined in ini file')
         except AttributeError:

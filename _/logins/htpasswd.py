@@ -19,7 +19,7 @@ import _
 # Passwords can be managed with Apache's htpasswd program
 
 
-class Simple(_.login.Login):
+class Simple(_.logins.Login):
     async def post(self):
         username = self.get_argument('username', '')
         password = self.get_argument('password', '')

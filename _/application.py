@@ -50,9 +50,9 @@ class Application(tornado.web.Application):
         self.sessions   = None
 
         try:
-            await _.components.load('cache')
-            await _.components.load('database')
-            await _.components.load('login')
+            await _.components.load('caches')
+            await _.components.load('databases')
+            await _.components.load('logins')
         except Exception as e:
             logging.error('%s', e)
             self.stop()
@@ -61,7 +61,7 @@ class Application(tornado.web.Application):
         if instance:
             logging.debug('Sessions cache instance: %s', instance)
             try:
-                self.sessions = _.components.cache[instance]
+                self.sessions = _.cache[instance]
             except KeyError:
                 raise _.error('Unknown sessions cache instance: %s', instance)
 
@@ -70,7 +70,7 @@ class Application(tornado.web.Application):
         if 'cookie_secret' not in self.settings:
             self.settings['cookie_secret'] = await self.cookie_secret()
 
-        for instance,cls in _.components.login.items():
+        for instance,cls in _.login.items():
             self.login_urls.append((f'/login/{instance}', cls))
 
         if self.login_urls:
@@ -89,10 +89,12 @@ class Application(tornado.web.Application):
             await self.__listen()
             await self.__stop.wait()
 
-        for instance in _.components.database.values():
+        for name,instance in _.database.items():
+            logging.info('Closing database: %s', name)
             await instance.close()
 
-        for instance in _.components.cache.values():
+        for name,instance in _.cache.items():
+            logging.info('Closing cache: %s', name)
             await instance.close()
 
     async def __listen(self, **kwds):

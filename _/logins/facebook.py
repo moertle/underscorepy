@@ -16,7 +16,7 @@ import tornado.web
 
 FBURL = '%s://%s/login/facebook?next=%s'
 
-class Facebook(_.login.Login, tornado.auth.FacebookGraphMixin):
+class Facebook(_.logins.Login, tornado.auth.FacebookGraphMixin):
     async def get(self):
         next_url = tornado.escape.url_escape(self.get_argument('next', '/'))
 

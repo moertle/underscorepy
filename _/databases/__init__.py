@@ -1,3 +1,10 @@
+#
+# (c) 2015-2023 Matthew Shaw
+#
+# Authors
+# =======
+# Matthew Shaw <mshaw.cx@gmail.com>
+#
 
 import _
 
@@ -6,7 +13,7 @@ class Database:
     async def _(cls, instance, **kwds):
         self = cls()
         await self.init(**kwds)
-        _.components.database[instance] = self
+        _.database[instance] = self
 
     async def init(self, **kwds):
         pass

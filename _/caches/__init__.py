@@ -1,3 +1,10 @@
+#
+# (c) 2015-2023 Matthew Shaw
+#
+# Authors
+# =======
+# Matthew Shaw <mshaw.cx@gmail.com>
+#
 
 import _
 
@@ -7,7 +14,7 @@ class Cache:
     async def _(cls, instance, **kwds):
         self = cls()
         await self.init(**kwds)
-        _.components.cache[instance] = self
+        _.cache[instance] = self
 
     async def close(self):
         pass
