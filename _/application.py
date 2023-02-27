@@ -49,9 +49,13 @@ class Application(tornado.web.Application):
         self.login_urls = []
         self.sessions   = None
 
-        await _.components.load('cache')
-        await _.components.load('database')
-        await _.components.load('login')
+        try:
+            await _.components.load('cache')
+            await _.components.load('database')
+            await _.components.load('login')
+        except Exception as e:
+            logging.error('%s', e)
+            self.stop()
 
         instance = _.config.get(_.app, 'sessions', fallback=None)
         if instance:

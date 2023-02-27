@@ -24,9 +24,12 @@ class Postgres(_.database.Database):
         sanitized = re.sub('password=[^ ]*', 'password=****', self.dsn)
         logging.info('DSN: %s', sanitized)
 
-        self.conn = await psycopg.AsyncConnection.connect(self.dsn,
-            #row_factory=psycopg.rows.args_row(z)
-            )
+        try:
+            self.conn = await psycopg.AsyncConnection.connect(self.dsn,
+                #row_factory=psycopg.rows.args_row(z)
+                )
+        except psycopg.OperationalError as e:
+            raise _.error('%s', e) from None
 
     async def close(self):
         pass
