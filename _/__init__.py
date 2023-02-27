@@ -16,6 +16,6 @@ class error(Exception):
 from . import version
 from . import settings
 from . import auth
-from . import component
+from . import components
 
 from .application import Application

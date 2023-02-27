@@ -17,7 +17,7 @@ class LoginPage(tornado.web.RequestHandler):
     def get(self, template=None):
         template = template + '.html' if template else self.template
         next_url = self.get_argument('next', '/')
-        self.render(template, message=None, next_url=next_url, **self.kewords)
+        self.render(template, message=None, next_url=next_url, **self.kwds)
 
 
 class Logout(tornado.web.RequestHandler):

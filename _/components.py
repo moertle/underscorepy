@@ -17,7 +17,6 @@ import _
 cache    = {}
 database = {}
 login    = {}
-session  = None
 
 async def load(componentType):
     if componentType not in _.config:

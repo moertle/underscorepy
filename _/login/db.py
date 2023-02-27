@@ -29,7 +29,7 @@ class Db(_.login.Login):
             password = _.auth.simple_hash(username + password)
 
         try:
-            instance = _.component.database[cls.database]
+            instance = _.components.database[cls.database]
         except KeyError:
             raise tornado.web.HTTPError(500, f'database "{cls.database}" not defined in ini file')
         except AttributeError:

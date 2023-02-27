@@ -21,7 +21,7 @@ except ImportError:
 
 
 class Slap(_.login.Login):
-    def post(self):
+    async def post(self):
         username = self.get_argument('username', '')
         username = tornado.escape.xhtml_escape(username)
         password = self.get_argument('password', '')
@@ -31,7 +31,8 @@ class Slap(_.login.Login):
             ldap_server = ldap.initialize(self.uri)
             ldap_server.bind_s(dn, password)
 
-            self.set_secure_cookie('session_id', username)
+            await self.application.onLogin(self, username)
+
             ldap_server.unbind()
 
         except ldap.NO_SUCH_OBJECT:

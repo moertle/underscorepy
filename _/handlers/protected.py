@@ -14,14 +14,14 @@ from .template import Template
 
 class Protected(Template):
     async def prepare(self):
-        if not _.component.session:
+        if self.application.sessions is None:
             raise tornado.web.HTTPError(500, 'No session component specified')
 
         self.session = None
         session_id = self.get_secure_cookie('session_id', max_age_days=1)
         if session_id:
             session_id = session_id.decode('utf-8')
-            self.session = await _.component.session.load_session(session_id)
+            self.session = await self.application.sessions.load_session(session_id)
 
     def get_current_user(self):
         return self.session

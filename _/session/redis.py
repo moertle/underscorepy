@@ -12,7 +12,7 @@ import _
 
 class Redis(_.session.Session):
     async def init(self, cache):
-        self.cache = _.component.cache[cache]
+        self.cache = _.components.cache[cache]
 
     async def save_session(self, session_id, session):
         async with self.cache.pipeline(transaction=True) as pipe:

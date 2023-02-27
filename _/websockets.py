@@ -34,12 +34,13 @@ class Base(tornado.websocket.WebSocketHandler):
 
 
 class Protected(Base):
-    def open(self):
-        self.session_id = self.get_secure_cookie('session_id')
-        if not self.session_id:
-            self.close(4004)
-            return
-        super(Protected, self).open()
+    async def prepare(self):
+        session_id = self.get_secure_cookie('session_id')
+        if not session_id:
+            raise tornado.web.HTTPError(403)
+
+        session = await self.application.sessions.load_session(session_id)
+        print(session)
 
 
 class EchoMixin:

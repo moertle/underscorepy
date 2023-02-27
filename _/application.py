@@ -48,17 +48,24 @@ class Application(tornado.web.Application):
         self.patterns   = []
         self.login_urls = []
 
-        await _.component.load('cache')
-        await _.component.load('database')
-        await _.component.load('login')
-        await _.component.load('session')
+        await _.components.load('cache')
+        await _.components.load('database')
+        await _.components.load('login')
+
+        instance = _.config.get(_.app, 'sessions', fallback=None)
+        if instance:
+            logging.debug('Sessions cache instance: %s', instance)
+            try:
+                self.sessions = _.components.cache[instance]
+            except KeyError:
+                raise _.error('Unknown sessions cache instance: %s', instance)
 
         await self.initialize()
 
         if 'cookie_secret' not in self.settings:
             self.settings['cookie_secret'] = await self.cookieSecret()
 
-        for instance,cls in _.component.login.items():
+        for instance,cls in _.components.login.items():
             self.login_urls.append((f'/login/{instance}', cls))
 
         if self.login_urls:
@@ -77,10 +84,10 @@ class Application(tornado.web.Application):
             await self.__listen()
             await self.__stop.wait()
 
-        for instance in _.component.database.values():
+        for instance in _.components.database.values():
             await instance.close()
 
-        for instance in _.component.cache.values():
+        for instance in _.components.cache.values():
             await instance.close()
 
     async def __listen(self, **kwds):

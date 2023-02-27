@@ -20,7 +20,7 @@ import _
 
 
 class Simple(_.login.Login):
-    def post(self):
+    async def post(self):
         username = self.get_argument('username', '')
         password = self.get_argument('password', '')
         password = password.encode('utf-8')
@@ -41,7 +41,7 @@ class Simple(_.login.Login):
             if hash.rstrip() != password:
                 break
 
-            self.set_secure_cookie('session_id', username)
+            await self.application.onLogin(self, username)
             break
 
         self.redirect(self.get_argument('next', '/'))

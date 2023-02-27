@@ -6,7 +6,7 @@ class Database:
     async def _(cls, instance, **kwds):
         self = cls()
         await self.init(**kwds)
-        _.component.database[instance] = self
+        _.components.database[instance] = self
 
     async def init(self, **kwds):
         pass

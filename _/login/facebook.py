@@ -39,7 +39,7 @@ class Facebook(_.login.Login, tornado.auth.FacebookGraphMixin):
                 extra_params = {'scope': 'email'}
                 )
 
-    def _on_auth(self, fbuser):
+    async def _on_auth(self, fbuser):
         if not fbuser:
             raise tornado.web.HTTPError(500, 'Facebook authentication failed')
 
@@ -54,17 +54,18 @@ class Facebook(_.login.Login, tornado.auth.FacebookGraphMixin):
             self.set_secure_cookie('session_id', str(profile['uid']))
             self.redirect(self.get_argument('next', '/'))
 
-    def _on_me(self, fbuser):
+    async def _on_me(self, fbuser):
         profile = _.db.FindProfile('email', fbuser['email'])
         if not profile:
             profile = dict(
                 email      = fbuser['email'],
                 display    = fbuser['name'],
                 fbid       = fbuser['id'],
-                firstLogin = datetime.datetime.now()
+                firstLogin = int(time.time() * 1000)
             )
 
-            uid = _.db.SaveProfile(profile)
+            await self.application.onLogin(self, profile)
+            #uid = _.db.SaveProfile(profile)
             self.set_secure_cookie('session_id', str(uid))
 
         else:
