@@ -26,20 +26,28 @@ async def load(componentType):
         component = _.config[componentType][name]
 
         if component.startswith('+'):
+            try:
+                component,attr = component.rsplit('.', 1)
+            except ValueError:
+                attr = None
             importPath = component[1:]
         else:
+            attr = None
             importPath = f'_.{componentType}.{component}'
 
         module = importlib.import_module(importPath)
 
         cls = None
-        for attrName in dir(module):
-            attr = getattr(module, attrName)
-            if not isinstance(attr, type):
-                continue
-            if not hasattr(attr, '_'):
-                continue
-            cls = attr
+        if not attr:
+            for attrName in dir(module):
+                attr = getattr(module, attrName)
+                if not isinstance(attr, type):
+                    continue
+                if not hasattr(attr, '_'):
+                    continue
+                cls = attr
+        else:
+            cls = getattr(module, attr)
 
         if not cls:
             logging.error('%s: %s module not found', component, componentType)
