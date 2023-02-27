@@ -1,8 +1,5 @@
-
-__author__    = 'Matthew Oertle'
-__email__     = 'moertle@gmail.com'
-__copyright__ = '(c)2015-2018, Matthew Oertle'
-__credits__   = ['Matthew Oertle']
-
+__author__    = 'Matthew Shaw'
+__email__     = 'mshaw.cx@gmail.com'
+__copyright__ = '(c)2015-2023, Matthew Shaw'
 __license__   = 'MIT'
-__version__   = '0.5.1'
+__version__   = '0.6.0'

@@ -1,7 +1,9 @@
 
-import sys
+import os
 
-import _
+root = os.path.dirname(__file__)
+root = os.path.join(root, '..')
+root = os.path.abspath(root)
 
 # a generic error class for throwing exceptions
 class error(Exception):
@@ -11,12 +13,9 @@ class error(Exception):
     def __str__(self):
         return self.message
 
-
 from . import version
-from . import io
-from . import decorators
 from . import settings
-from . import components
+from . import auth
+from . import component
 
-from .piper import Piper
-
+from .application import Application

@@ -1,37 +1,37 @@
+#
+# (c) 2015-2023 Matthew Shaw
+#
+# Authors
+# =======
+# Matthew Shaw <mshaw.cx@gmail.com>
+#
 
 import time
 import logging
 
-import _
-
 import tornado.escape
 
-from . import Authentication
+import _
+
 
 try:
     import ldap
 except ImportError:
     raise _.error('Missing LDAP module')
 
-class Slap(Authentication):
-    def get(self):
-        next = self.get_argument('next', '/')
-        self.render('login.html', next=next)
 
+class Slap(_.component.Login):
     def post(self):
         username = self.get_argument('username', '')
         username = tornado.escape.xhtml_escape(username)
         password = self.get_argument('password', '')
 
-        ldap_dn  = _.settings.config.get('slap', 'dn')
-        ldap_uri = _.settings.config.get('slap', 'uri')
-
         try:
-            dn = ldap_dn.format(username)
-            ldap_server = ldap.initialize(ldap_uri)
+            dn = self.dn.format(username)
+            ldap_server = ldap.initialize(self.uri)
             ldap_server.bind_s(dn, password)
 
-            self.set_secure_cookie('_uid', username)
+            self.set_secure_cookie('session_id', username)
             ldap_server.unbind()
 
         except ldap.NO_SUCH_OBJECT:
@@ -41,6 +41,6 @@ class Slap(Authentication):
             logging.warn('Invalid credentials for user: %s', username)
 
         except ldap.SERVER_DOWN:
-            logging.warn('Could not connect to LDAP server: %s', ldap_uri)
+            logging.warn('Could not connect to LDAP server: %s', self.uri)
 
         self.redirect(self.get_argument('next', '/'))
