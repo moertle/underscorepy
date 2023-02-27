@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=0.5">
+  <meta name="description" content="_.py">
+  <title>_.py</title>
+  <link rel="icon"       type="image/x-icon" href="/static/favicon.ico">
+  <link rel="stylesheet" type="text/css"     href="/static/test.css" />
+{% block scripts %}
+  <script src="/static/test.js"></script>
+{% end %}
+</head>
+<body>
+{% block body %}{% end %}
+<div><a href="/logout">Logout</a></div>
+</body>
+</html>

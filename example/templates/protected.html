@@ -1,0 +1,10 @@
+{% extends 'base.template' %}
+
+{% block body %}
+<h4>Protected _.py</h4>
+<div>
+Websocket: <span id="ws"></span>
+</div>
+<div><a href="/">Index</a></div>
+<script>connect('pws')</script>
+{% end %}

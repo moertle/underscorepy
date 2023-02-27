@@ -1,0 +1,21 @@
+{% extends 'base.template' %}
+
+{% block scripts %}{% end %}
+
+{% block body %}
+  <h4>Login</h4>
+  {% if message %}
+  <div>{{ message }}</div>
+  {% end %}
+  <form action="/login/local" method="POST">
+    <input type="hidden" name="next" value="{{next_url}}" />
+
+    <label for="inputUser" class="form-label">User</label><br/>
+    <input type="text" class="form-control" id="inputUser" name="username" required autofocus><br/>
+
+    <label for="inputPassword" class="form-label">Password</label><br/>
+    <input type="password" class="form-control" id="inputPassword" name="password"><br/>
+
+    <button type="submit" class="btn btn-primary float-end">Sign in</button>
+  </form>
+{% end %}
