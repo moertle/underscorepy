@@ -18,7 +18,7 @@ import tornado.web
 import _
 
 
-class Db(_.component.Login):
+class Db(_.login.Login):
     table    = 'users'
     username = 'username'
     password = 'password'

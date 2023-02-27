@@ -17,7 +17,7 @@ except ImportError:
     raise _.error('Missing psycopg (PostgreSQL) module')
 
 
-class Postgres(_.component.Database):
+class Postgres(_.database.Database):
     async def init(self, **kwds):
         self.dsn = ' '.join('{0}={1}'.format(k, v) for k,v in kwds.items())
 

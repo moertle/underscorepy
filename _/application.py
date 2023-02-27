@@ -99,35 +99,35 @@ class Application(tornado.web.Application):
         logging.info('Listening on %s:%d', _.args.address, _.args.port)
 
     async def initialize(self):
-        # underscore apps should override this function
-        pass
+        'underscore apps should override this function'
 
     async def cookieSecret(self):
-        # underscore apps should override this function
+        'underscore apps should override this function'
         return os.urandom(32)
 
     async def onLogin(self, handler, user):
-        # underscore apps can override this function
-        pass
+        'underscore apps can override this function'
 
     def periodic(self, timeout, fn, *args, **kwds):
+        'run a function or coroutine on a recurring basis'
         async def _periodic():
             while True:
-                coro = fn(*args, **kwds)
-                if coro:
-                    await coro
+                # bail if the stop event is set
+                # otherwise run the function after the timeout occurs
                 try:
                     await asyncio.wait_for(self.__stop.wait(), timeout=timeout)
                     break
                 except asyncio.TimeoutError as e:
                     pass
+                coro = fn(*args, **kwds)
+                if asyncio.iscoroutinefunction(coro):
+                    await coro
         return asyncio.create_task(_periodic())
 
     def stop(self):
+        logging.debug('Setting stop event')
         self.__stop.set()
 
     def __signalHandler(self, signum, frame):
-        if signal.SIGINT == signum:
-            print()
         logging.info('Terminating %s', _.app)
         self.loop.call_soon_threadsafe(self.stop)

@@ -20,7 +20,7 @@ except ImportError:
     raise _.error('Missing LDAP module')
 
 
-class Slap(_.component.Login):
+class Slap(_.login.Login):
     def post(self):
         username = self.get_argument('username', '')
         username = tornado.escape.xhtml_escape(username)

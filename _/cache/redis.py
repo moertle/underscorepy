@@ -6,9 +6,6 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import logging
-import re
-
 import _
 
 try:
@@ -17,7 +14,7 @@ except ImportError:
     raise _.error('Missing redis module')
 
 
-class Redis(_.component.Cache):
+class Redis(_.cache.Cache):
     async def init(self, **kwds):
         if 'socket_connect_timeout' not in kwds:
             kwds['socket_connect_timeout'] = 3

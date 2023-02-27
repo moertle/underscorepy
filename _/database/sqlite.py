@@ -20,7 +20,7 @@ except ImportError:
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
 
 
-class SQLite(_.component.Database):
+class SQLite(_.database.Database):
     async def init(self, path=None, schema=None):
         try:
             self.conn = await aiosqlite.connect(path)

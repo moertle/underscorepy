@@ -10,7 +10,7 @@ import json
 
 import _
 
-class Redis(_.component.Session):
+class Redis(_.session.Session):
     async def init(self, cache):
         self.cache = _.component.cache[cache]
 
