@@ -23,20 +23,13 @@ from . import websockets
 
 
 class Application(tornado.web.Application):
-    __entry_points = []
-
-    @classmethod
-    def Entry(cls, fn):
-        Application.__entry_points.append(fn)
-        return fn
-
     def __init__(self, ns=None):
         try:
             asyncio.run(self.__async_main(ns))
         except _.error as e:
-            logging.error('%s', e)
             if _.args.debug:
                 traceback.print_tb(e.__traceback__)
+            logging.error('%s', e)
 
     async def __async_main(self, ns):
         self.loop   = asyncio.get_event_loop()
@@ -49,6 +42,9 @@ class Application(tornado.web.Application):
             await _.settings.load(self, ns=ns, app=app)
             await self.logging()
         except _.error as e:
+            if _.args.debug:
+                traceback.print_tb(e.__traceback__)
+            logging.error('%s', e)
             self.stop()
 
         if not _.stop.is_set():
@@ -60,7 +56,10 @@ class Application(tornado.web.Application):
                     self.stop()
 
         if not _.stop.is_set():
-            await self.__async_init()
+            try:
+                await self.__async_init()
+            except _.error as e:
+                logging.error('%s', e)
 
         for name,component in _.database.items():
             await component.close()
@@ -89,14 +88,10 @@ class Application(tornado.web.Application):
                 raise _.error('Unknown sessions cache instance: %s', self.sessions)
 
         # call the child applications entry point
-        if Application.__entry_points:
-            for fn in Application.__entry_points:
-                await _.wait(fn(self))
-        else:
-            try:
-                await _.wait(self.initialize())
-            except NotImplementedError:
-                logging.warning('No entry point defined')
+        try:
+            await _.wait(self.initialize())
+        except NotImplementedError:
+            logging.warning('No "initialize" function defined')
 
         if 'cookie_secret' not in self.settings:
             self.settings['cookie_secret'] = await self.cookie_secret()
@@ -140,13 +135,6 @@ class Application(tornado.web.Application):
 
     async def logging(self):
         'underscore apps can override or extend this function'
-
-        logging.basicConfig(
-            format  = '%(asctime)s %(levelname)-8s %(message)s',
-            datefmt = '%Y-%m-%d %H:%M:%S',
-            level   = logging.DEBUG if _.args.debug else logging.INFO,
-            force   = True
-            )
 
         # add the handlers to the logger
         if _.config.getboolean(_.app, 'logging', fallback=False):

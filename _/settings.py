@@ -14,6 +14,7 @@ import logging
 import os
 import sys
 import time
+import traceback
 
 import _
 
@@ -22,7 +23,7 @@ class ArgParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
         if message:
             self._print_message(message, sys.stderr)
-        raise _.error('')
+        _.stop.set()
 
 _.argparser = ArgParser(add_help=False)
 
@@ -48,7 +49,6 @@ _.config.optionxform = str
 
 
 async def load(application, **kwds):
-
     # get the path of the caller
     caller = inspect.getfile(application.__class__)
 
@@ -80,10 +80,18 @@ async def load(application, **kwds):
     iniFiles.append(_.paths(f'{_.app}.ini'))
 
     # first pass at parsing args to get additional ini files
-    args,remainder = _.argparser.parse_known_args()
+    _.args,remainder = _.argparser.parse_known_args()
 
-    if args.ini:
-        iniFiles.append(args.ini)
+    if _.args.ini:
+        iniFiles.append(_.args.ini)
+
+    _.args.debug = '--debug' in remainder
+    logging.basicConfig(
+        format  = '%(asctime)s %(levelname)-8s %(message)s',
+        datefmt = '%Y-%m-%d %H:%M:%S',
+        level   = logging.DEBUG if _.args.debug else logging.INFO,
+        force   = True
+        )
 
     try:
         ok = _.config.read(iniFiles)
@@ -93,14 +101,13 @@ async def load(application, **kwds):
     if not ok:
         raise _.error('Unable to read config file(s):\n  %s', '\n  '.join(iniFiles))
 
-    try:
-        await _.components.load('caches')
-        await _.components.load('databases')
-        await _.components.load('logins')
-    except Exception as e:
-        if _.args.debug:
-            traceback.print_tb(e.__traceback__)
-        raise _.error('%s', e)
+    #try:
+    await _.components.load('caches')
+    await _.components.load('databases')
+    await _.components.load('logins')
+    #except Exception as e:
+    #    traceback.print_tb(e.__traceback__)
+    #    raise _.error('%s', e)
 
     _.argparser.add_argument('--debug', '-D',
         action='store_true',
