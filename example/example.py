@@ -32,12 +32,12 @@ class TestBasicAuth(_.handlers.Template):
 
 
 class TestApp(_.Application):
+    @_.Application.Entry
     async def initialize(self):
         self.websockets = {}
-        self.accounts = _.components.database['accounts']
-        self.redis    = _.components.cache['red']
-
-        self.mem = _.components.cache['mem']
+        self.accounts = _.database['accounts']
+        self.redis    = _.cache['red']
+        self.mem      = _.cache['mem']
 
         self.patterns = [
             (r'/basic',       TestBasicAuth),
@@ -50,17 +50,19 @@ class TestApp(_.Application):
         self.cb_count = 3
         self.status_cb  = self.periodic(2, self.status)
 
-    def status(self):
+    async def status(self):
         logging.info('Periodic: %s', time.ctime())
         self.cb_count -= 1
         if not self.cb_count:
             self.status_cb.cancel()
             logging.info('Cancelling periodic callback')
 
-    #async def cookieSecret(self):
-    #    return b'testcookiesecret'
+    async def cookie_secret(self):
+        # the cache modules should provide a sane cookie secret
+        # this is here to illustrate how to provide a custom one if need be
+        return b'testcookiesecret'
 
-    async def onLogin(self, handler, user):
+    async def on_login(self, handler, user):
         user['last'] = int(time.time() * 1000)
         await self.accounts.update('users', user, 'username')
         session_id = str(uuid.uuid4())

@@ -1,9 +1,13 @@
 
 import _
 
-class TestCache(_.cache.Cache):
+class TestCache(_.caches.Cache):
     async def init(self, **kwds):
-        print('>>> TEST:', kwds)
+        pass
+        #print('#' * 80)
+        #print('# TestCache')
+        #print('#', kwds)
+        #print('#' * 80)
 
     async def cookie_secret(self):
-        return b''
+        return b'weaksauce'
