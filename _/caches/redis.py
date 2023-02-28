@@ -6,9 +6,9 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import os
 import base64
 import json
+import os
 
 import _
 

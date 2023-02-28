@@ -16,6 +16,9 @@ class Cache:
         await self.init(**kwds)
         _.cache[name] = self
 
+    async def init(self, **kwds):
+        pass
+
     async def close(self):
         pass
 

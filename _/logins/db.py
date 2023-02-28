@@ -41,6 +41,7 @@ class Db(_.logins.Login):
 
             record = dict(_.config[name])
             record.pop('database', None)
+            record.pop('table',    None)
 
             record[cls.username] = username
             record[cls.password] = password
@@ -48,8 +49,8 @@ class Db(_.logins.Login):
             _.stop.set()
 
         if getattr(_.args, f'{name}_list_users'):
-            for user in await db.find('users'):
-                print(user['username'])
+            for user in await db.find(cls.table):
+                print(user[cls.username])
             _.stop.set()
 
     @classmethod

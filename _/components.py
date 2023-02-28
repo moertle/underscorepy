@@ -35,7 +35,10 @@ async def load(componentType):
             attr = None
             importPath = f'_.{componentType}.{component}'
 
-        module = importlib.import_module(importPath)
+        try:
+            module = importlib.import_module(importPath)
+        except ModuleNotFoundError:
+            raise _.error('Unknown module: %s', importPath)
 
         cls = None
         if not attr:
