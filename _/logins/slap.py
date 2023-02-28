@@ -21,27 +21,39 @@ except ImportError:
 
 
 class Slap(_.logins.Login):
+    @classmethod
+    async def load(cls, name):
+        _.argparser.add_argument(f'--{name}-list-users',
+            action='store_true',
+            help='list users'
+            )
+
+    @classmethod
+    async def args(cls, name):
+        pass
+
+    @classmethod
+    async def check(cls, username, password):
+        try:
+            dn = cls.dn.format(username)
+            ldap_server = ldap.initialize(cls.uri)
+            ldap_server.bind_s(dn, password)
+            ldap_server.unbind()
+            return True
+        except ldap.NO_SUCH_OBJECT:
+            logging.warn('Could not find record for user: %s', username)
+        except ldap.INVALID_CREDENTIALS:
+            logging.warn('Invalid credentials for user: %s', username)
+        except ldap.SERVER_DOWN:
+            logging.error('Could not connect to LDAP server: %s', cls.uri)
+        return None
+
     async def post(self):
         username = self.get_argument('username', '')
         username = tornado.escape.xhtml_escape(username)
         password = self.get_argument('password', '')
 
-        try:
-            dn = self.dn.format(username)
-            ldap_server = ldap.initialize(self.uri)
-            ldap_server.bind_s(dn, password)
-
-            await self.application.onLogin(self, username)
-
-            ldap_server.unbind()
-
-        except ldap.NO_SUCH_OBJECT:
-            logging.warn('Could not find record for user: %s', username)
-
-        except ldap.INVALID_CREDENTIALS:
-            logging.warn('Invalid credentials for user: %s', username)
-
-        except ldap.SERVER_DOWN:
-            logging.warn('Could not connect to LDAP server: %s', self.uri)
-
+        ok = await Slap.check(username, password)
+        if ok:
+            await self.application.on_login(self, username)
         self.redirect(self.get_argument('next', '/'))

@@ -19,7 +19,15 @@ import _
 # Passwords can be managed with Apache's htpasswd program
 
 
-class Simple(_.logins.Login):
+class Htpasswd(_.logins.Login):
+    @classmethod
+    async def load(cls, name):
+        pass
+
+    @classmethod
+    async def args(cls, name):
+        pass
+
     async def post(self):
         username = self.get_argument('username', '')
         password = self.get_argument('password', '')
@@ -41,7 +49,7 @@ class Simple(_.logins.Login):
             if hash.rstrip() != password:
                 break
 
-            await self.application.onLogin(self, username)
+            await self.application.on_login(self, username)
             break
 
         self.redirect(self.get_argument('next', '/'))

@@ -41,7 +41,7 @@ class Google(_.logins.Login, tornado.auth.GoogleOAuth2Mixin):
         if _domains and domain not in _domains:
             raise tornado.web.HTTPError(500, 'Invalid domain')
 
-        await self.application.onLogin(self, name)
+        await self.application.on_login(self, name)
         #self.set_secure_cookie('session_id', name)
         self.redirect(self.get_argument('next', '/'))
 

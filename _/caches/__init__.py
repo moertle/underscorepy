@@ -11,10 +11,10 @@ import _
 
 class Cache:
     @classmethod
-    async def _(cls, instance, **kwds):
+    async def _(cls, name, **kwds):
         self = cls()
         await self.init(**kwds)
-        _.cache[instance] = self
+        _.cache[name] = self
 
     async def close(self):
         pass

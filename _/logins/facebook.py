@@ -64,7 +64,7 @@ class Facebook(_.logins.Login, tornado.auth.FacebookGraphMixin):
                 firstLogin = int(time.time() * 1000)
             )
 
-            await self.application.onLogin(self, profile)
+            await self.application.on_login(self, profile)
             #uid = _.db.SaveProfile(profile)
             self.set_secure_cookie('session_id', str(uid))
 

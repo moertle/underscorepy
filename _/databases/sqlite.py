@@ -37,7 +37,7 @@ class SQLite(_.databases.Database):
             schema = _.paths(schema)
 
         if os.path.isfile(schema):
-            logging.debug('Loading schema: %s', schema)
+            logging.info('Loading schema: %s', schema)
             schema = open(schema, 'r').read()
             cursor = await self.conn.cursor()
             await cursor.executescript(schema)

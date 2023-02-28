@@ -10,10 +10,10 @@ import _
 
 class Database:
     @classmethod
-    async def _(cls, instance, **kwds):
+    async def _(cls, name, **kwds):
         self = cls()
         await self.init(**kwds)
-        _.database[instance] = self
+        _.database[name] = self
 
     async def init(self, **kwds):
         pass

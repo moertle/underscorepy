@@ -12,6 +12,7 @@ import os
 import signal
 import socket
 import sys
+import traceback
 
 import tornado.web
 
@@ -22,21 +23,54 @@ from . import websockets
 
 
 class Application(tornado.web.Application):
-    def __init__(self, ns=None):
-        app = self.__class__.__name__.lower()
-        _.settings.load(self, ns=ns, app=app)
+    __entry_points = []
 
+    @classmethod
+    def Entry(cls, fn):
+        Application.__entry_points.append(fn)
+        return fn
+
+    def __init__(self, ns=None):
         try:
-            asyncio.run(self.__async_main())
+            asyncio.run(self.__async_main(ns))
         except _.error as e:
             logging.error('%s', e)
+            if _.args.debug:
+                traceback.print_tb(e.__traceback__)
 
-    async def __async_main(self):
+    async def __async_main(self, ns):
         self.loop   = asyncio.get_event_loop()
-        self.__stop = asyncio.Event()
 
         signal.signal(signal.SIGINT,  self.__signalHandler)
         signal.signal(signal.SIGTERM, self.__signalHandler)
+
+        app = self.__class__.__name__.lower()
+        try:
+            await _.settings.load(self, ns=ns, app=app)
+            await self.logging()
+        except _.error as e:
+            self.stop()
+
+        if not _.stop.is_set():
+            for name,component in _.login.items():
+                try:
+                    await component.args(name)
+                except _.error as e:
+                    logging.error('%s', e)
+                    self.stop()
+
+        if not _.stop.is_set():
+            await self.__async_init()
+
+        for name,component in _.database.items():
+            await component.close()
+
+        for name,component in _.cache.items():
+            await component.close()
+
+    async def __async_init(self, **kwds):
+        self.patterns   = []
+        self.login_urls = []
 
         # Tornado settings
         self.settings = dict(
@@ -45,27 +79,24 @@ class Application(tornado.web.Application):
             debug         = _.args.debug,
             )
 
-        self.patterns   = []
-        self.login_urls = []
-        self.sessions   = None
-
-        try:
-            await _.components.load('caches')
-            await _.components.load('databases')
-            await _.components.load('logins')
-        except Exception as e:
-            logging.error('%s', e)
-            self.stop()
-
-        instance = _.config.get(_.app, 'sessions', fallback=None)
-        if instance:
-            logging.debug('Sessions cache instance: %s', instance)
+        # check if a sessions cache was specified
+        self.sessions = _.config.get(_.app, 'sessions', fallback=None)
+        if self.sessions:
+            logging.debug('Sessions cache: %s', self.sessions)
             try:
-                self.sessions = _.cache[instance]
+                self.sessions = _.cache[self.sessions]
             except KeyError:
-                raise _.error('Unknown sessions cache instance: %s', instance)
+                raise _.error('Unknown sessions cache instance: %s', self.sessions)
 
-        await self.initialize()
+        # call the child applications entry point
+        if Application.__entry_points:
+            for fn in Application.__entry_points:
+                await _.wait(fn(self))
+        else:
+            try:
+                await _.wait(self.initialize())
+            except NotImplementedError:
+                logging.warning('No entry point defined')
 
         if 'cookie_secret' not in self.settings:
             self.settings['cookie_secret'] = await self.cookie_secret()
@@ -85,17 +116,8 @@ class Application(tornado.web.Application):
             ( r'/(favicon.ico)', tornado.web.StaticFileHandler, {'path':''}),
             )
 
-        if not self.__stop.is_set():
-            await self.__listen()
-            await self.__stop.wait()
-
-        for name,instance in _.database.items():
-            logging.info('Closing database: %s', name)
-            await instance.close()
-
-        for name,instance in _.cache.items():
-            logging.info('Closing cache: %s', name)
-            await instance.close()
+        await self.__listen()
+        await _.stop.wait()
 
     async def __listen(self, **kwds):
         # call the Tornado Application init here to give children a chance
@@ -108,19 +130,44 @@ class Application(tornado.web.Application):
         try:
             self.listen(_.args.port, _.args.address, **kwds)
         except Exception as e:
-            raise _.error(str(e)) from None
+            raise _.error('%s', e) from None
 
         logging.info('Listening on %s:%d', _.args.address, _.args.port)
 
     async def initialize(self):
         'underscore apps should override this function'
+        raise NotImplementedError
+
+    async def logging(self):
+        'underscore apps can override or extend this function'
+
+        logging.basicConfig(
+            format  = '%(asctime)s %(levelname)-8s %(message)s',
+            datefmt = '%Y-%m-%d %H:%M:%S',
+            level   = logging.DEBUG if _.args.debug else logging.INFO,
+            force   = True
+            )
+
+        # add the handlers to the logger
+        if _.config.getboolean(_.app, 'logging', fallback=False):
+            fullPath = _.paths(f'{_.app}.log')
+            fileLogger = logging.FileHandler(fullPath)
+            fileLogger.setLevel(logging.DEBUG if _.args.debug else logging.INFO)
+            fileLogger.setFormatter(
+                logging.Formatter(
+                    fmt = '%(asctime)s %(levelname)-8s %(message)s',
+                    datefmt = '%Y-%m-%d %H:%M:%S',
+                    )
+                )
+            rootLogger = logging.getLogger()
+            rootLogger.addHandler(fileLogger)
 
     async def cookie_secret(self):
-        'underscore apps should override this function'
+        'underscore apps can override this function'
         if self.sessions is not None:
             return await self.sessions.cookie_secret()
 
-    async def onLogin(self, handler, user):
+    async def on_login(self, handler, user, *args, **kwds):
         'underscore apps can override this function'
 
     def periodic(self, timeout, fn, *args, **kwds):
@@ -130,18 +177,16 @@ class Application(tornado.web.Application):
                 # bail if the stop event is set
                 # otherwise run the function after the timeout occurs
                 try:
-                    await asyncio.wait_for(self.__stop.wait(), timeout=timeout)
+                    await asyncio.wait_for(_.stop.wait(), timeout=timeout)
                     break
                 except asyncio.TimeoutError as e:
                     pass
-                coro = fn(*args, **kwds)
-                if asyncio.iscoroutinefunction(coro):
-                    await coro
+                await _.wait(fn(*args, **kwds))
         return asyncio.create_task(_periodic())
 
     def stop(self):
         logging.debug('Setting stop event')
-        self.__stop.set()
+        _.stop.set()
 
     def __signalHandler(self, signum, frame):
         logging.info('Terminating %s', _.app)
