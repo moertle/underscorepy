@@ -13,10 +13,10 @@ JS_OUT    = $(STATIC_ROOT)/$(JS_FILE)
 CSS_OUT = $(STATIC_ROOT)/css/skeleton.css
 CSS_SRC = sass/skeleton.scss $(wildcard sass/*.scss)
 
-SASS_FLAGS = -I ./node_modules/fontawesome-free/scss \
+SASS_FLAGS = -I ./node_modules/@fortawesome/fontawesome-free/scss \
              -I ./node_modules/bootstrap/scss
 
-WEBFONTS_SRC = ./node_modules/fontawesome-free/webfonts
+WEBFONTS_SRC = ./node_modules/@fortawesome/fontawesome-free/webfonts
 WEBFONTS = $(STATIC_ROOT)/webfonts
 
 all: node_modules $(JS_OUT) $(CSS_OUT) $(WEBFONTS)
