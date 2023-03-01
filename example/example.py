@@ -35,8 +35,8 @@ class TestApp(_.Application):
     async def initialize(self):
         self.websockets = {}
         self.accounts = _.database['accounts']
-        self.redis    = _.cache['red']
-        self.mem      = _.cache['mem']
+        self.redis    = _.cache['redis']
+        self.mem      = _.cache['memory']
 
         self.patterns = [
             (r'/basic',       TestBasicAuth),

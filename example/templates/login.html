@@ -7,7 +7,7 @@
   {% if message %}
   <div>{{ message }}</div>
   {% end %}
-  <form action="/login/local" method="POST">
+  <form action="/login/db" method="POST">
     <input type="hidden" name="next" value="{{next_url}}" />
 
     <label for="inputUser" class="form-label">User</label><br/>

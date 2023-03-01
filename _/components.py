@@ -25,6 +25,8 @@ async def load(componentType):
 
     for name in _.config[componentType]:
         component = _.config[componentType][name]
+        if component is None:
+            component = name
 
         if component.startswith('+'):
             try:
