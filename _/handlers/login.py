@@ -24,4 +24,3 @@ class Logout(tornado.web.RequestHandler):
     def get(self):
         self.clear_cookie('session_id')
         self.redirect(self.get_argument('next', '/'))
-

@@ -23,13 +23,13 @@ class DbCache(_.caches.Cache):
     session_id = 'session_id'
 
     async def init(self, **kwds):
-        print('DB CACHE:', kwds)
         self.db = _.database[self.database]
-        print(self.db)
 
     async def cookie_secret(self):
         secret = await self.db.findOne(self.config, self.key, self.key_col)
-        if not secret:
+        if secret:
+            secret = secret['value']
+        else:
             secret = base64.b64encode(os.urandom(32))
             record = {
                 self.key_col : self.key,
@@ -38,9 +38,10 @@ class DbCache(_.caches.Cache):
             await self.db.upsert(self.config, record)
         return secret
 
-    async def save_session(self, session_id, session):
+    async def save_session(self, session):
+        super(DbCache, self).save_session(session)
         await self.db.upsert(self.table, session)
 
     async def load_session(self, session_id):
-        session = await self.db.findOne(self.table, session_id, self.session_id)
-        return json.loads(session) if session else None
+        record = await self.db.findOne(self.table, session_id, self.session_id)
+        return record if record else None

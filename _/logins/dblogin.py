@@ -13,7 +13,7 @@ import tornado.web
 import _
 
 
-class Db(_.logins.Login):
+class DbLogin(_.logins.Login):
     table    = 'users'
     username = 'username'
     password = 'password'
@@ -32,7 +32,10 @@ class Db(_.logins.Login):
 
     @classmethod
     async def args(cls, name):
-        db = _.database[cls.database]
+        try:
+            db = _.database[cls.database]
+        except AttributeError:
+            raise _.error('No database specified for %s', name)
 
         add_user = getattr(_.args, f'{name}_add_user')
         if add_user:
@@ -95,5 +98,7 @@ class Db(_.logins.Login):
             self.clear_cookie('session_id')
             self.render('login.html', message='Invalid Login', next_url=next_url)
         else:
-            await self.application.on_login(self, user)
+            session = await self.application.on_login(self, user)
+            await _.wait(self.application.sessions.save_session(session))
+            self.set_secure_cookie('session_id', session['session_id'], expires_days=1)
             self.redirect(next_url)

@@ -112,11 +112,11 @@ class Application(tornado.web.Application):
             self.login_urls.append((f'/login/{instance}', cls))
 
         if self.login_urls:
-            self.patterns.extend(self.login_urls)
-            self.patterns.extend([
+            self.patterns = self.login_urls + self.patterns
+            self.patterns = [
                 ( r'/login',  _.handlers.LoginPage ),
                 ( r'/logout', _.handlers.Logout    ),
-                ])
+                ] + self.patterns
             self.settings['login_url'] = '/login'
 
         self.patterns.append(

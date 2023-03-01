@@ -28,8 +28,11 @@ class Cache:
     async def cookie_secret(self):
         raise NotImplementedError
 
-    async def save_session(self, session_id, session):
-        raise NotImplementedError
+    def save_session(self, session):
+        try:
+            return session['session_id']
+        except KeyError:
+            raise _.error('No session_id defined in session')
 
     async def load_session(self, session_id):
         raise NotImplementedError

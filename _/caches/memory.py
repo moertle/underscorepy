@@ -19,10 +19,11 @@ class Memory(_.caches.Cache):
     async def cookie_secret(self):
         return os.urandom(32)
 
-    async def save_session(self, session_id, session):
+    def save_session(self, session):
+        session_id = super(DbCache, self).save_session(session)
         self.mem[session_id] = json.dumps(session)
 
-    async def load_session(self, session_id):
+    def load_session(self, session_id):
         session = self.mem.get(session_id, None)
         if not session:
             return None
