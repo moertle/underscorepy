@@ -1,0 +1,17 @@
+{% extends 'base.template' %}
+
+{% block scripts %}
+<script src="/static/js/skeleton.js"></script>
+{% end %}
+
+{% block body %}
+  <div class="card text-bg-dark">
+    <h2 class="card-header">
+      <img src="/static/images/skeleton.png" alt="Skeleton" />
+      <span class="float-end">
+      <small><i class="fa-regular fa-fw fa-user"></i>{{ current_user['username'] }}</small>
+      <a class="btn btn-warning" href="/logout" title="Logout"><i class="fa-regular fa-fw fa-right-from-bracket"></i></a>
+      </span>
+    </h2>
+  </div>
+{% end %}
