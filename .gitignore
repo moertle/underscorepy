@@ -5,4 +5,4 @@ __pycache__
 *.pb.h
 /build
 /dist
-/underscorepy.egg-info
+/*.egg-info
