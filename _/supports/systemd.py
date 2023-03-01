@@ -12,26 +12,13 @@ import sys
 
 import _
 
-'''
-[Unit]
-Description={app}
-After=network.target
-
-[Service]
-Type=simple
-ExecStart={script}
-User={user}
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-'''
 
 class Systemd(_.supports.Support):
-    async def init(self, **kwds):
+    async def init(self, name, **kwds):
         self.params = dict(
+            ns        = _.ns,
             app       = _.app,
-            cmdline   = f'python3 {os.path.abspath(sys.argv[0])}',
+            cmdline   = f'{os.path.abspath(sys.argv[0])}',
             user      = 'nobody',
             conf_path = '/etc/systemd/system/{app}.service',
             )
@@ -56,8 +43,6 @@ class Systemd(_.supports.Support):
             conf = conf.format(**self.params)
         except KeyError as e:
             raise _.error('Missing systemd parameter: %s', e)
-
-        print(conf)
 
         path = self.params['conf_path'].format(**self.params)
         try:

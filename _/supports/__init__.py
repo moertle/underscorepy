@@ -19,7 +19,7 @@ class Support:
         self.root = os.path.dirname(__file__)
         self.root = os.path.abspath(self.root)
 
-        await self.init(**kwds)
+        await self.init(name, **kwds)
         _.support[name] = self
 
     @classmethod

@@ -13,8 +13,10 @@ import _
 
 
 class Nginx(_.supports.Support):
-    async def init(self, **kwds):
+    async def init(self, name, **kwds):
         self.params = dict(
+            ns         = _.ns,
+            app        = _.app,
             web_root   = '/var/www/html',
             listen_ip4 = '0.0.0.0',
             listen_ip6 = '[::]',
