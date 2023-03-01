@@ -170,18 +170,21 @@ class Application(tornado.web.Application):
     async def on_login(self, handler, user, *args, **kwds):
         'underscore apps can override this function'
 
-    def periodic(self, timeout, fn, *args, **kwds):
+    def periodic(self, _timeout, fn, *args, **kwds):
         'run a function or coroutine on a recurring basis'
         async def _periodic():
             while True:
                 # bail if the stop event is set
                 # otherwise run the function after the timeout occurs
                 try:
-                    await asyncio.wait_for(_.stop.wait(), timeout=timeout)
+                    await asyncio.wait_for(_.stop.wait(), timeout=_timeout)
                     break
                 except asyncio.TimeoutError as e:
                     pass
-                await _.wait(fn(*args, **kwds))
+                try:
+                    result = await _.wait(fn(*args, **kwds))
+                except Exception as e:
+                    logging.exception(e)
         return asyncio.create_task(_periodic())
 
     def stop(self):
