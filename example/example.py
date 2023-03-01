@@ -32,7 +32,6 @@ class TestBasicAuth(_.handlers.Template):
 
 
 class TestApp(_.Application):
-    @_.Application.Entry
     async def initialize(self):
         self.websockets = {}
         self.accounts = _.database['accounts']
