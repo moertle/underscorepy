@@ -12,7 +12,10 @@ import _
 class Cache:
     @classmethod
     async def _(cls, name, **kwds):
-        self = cls()
+        # create a dynamic child class with kwds from the ini file
+        subclass = type(cls.__name__, (cls,), kwds)
+        #await subclass.init(name)
+        self = subclass()
         await self.init(**kwds)
         _.cache[name] = self
 

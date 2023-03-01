@@ -13,7 +13,7 @@ import json
 import _
 
 
-class Db(_.caches.Cache):
+class DbCache(_.caches.Cache):
     config  = 'config'
     key_col = 'key'
     key     = 'cookie'
@@ -24,21 +24,23 @@ class Db(_.caches.Cache):
 
     async def init(self, **kwds):
         print('DB CACHE:', kwds)
+        self.db = _.database[self.database]
+        print(self.db)
 
     async def cookie_secret(self):
-        secret = await db.findOne(cls.config, cls.key, cls.key_col)
+        secret = await self.db.findOne(self.config, self.key, self.key_col)
         if not secret:
             secret = base64.b64encode(os.urandom(32))
             record = {
-                cls.key_col : cls.key,
-                cls.val_col : secret,
+                self.key_col : self.key,
+                self.val_col : secret,
             }
-            await db.upsert(cls.config, record)
+            await self.db.upsert(self.config, record)
         return secret
 
     async def save_session(self, session_id, session):
-        await db.upsert(cls.table, session)
+        await self.db.upsert(self.table, session)
 
     async def load_session(self, session_id):
-        session = await db.findOne(cls.table, session_id, cls.session_id)
+        session = await self.db.findOne(self.table, session_id, self.session_id)
         return json.loads(session) if session else None
