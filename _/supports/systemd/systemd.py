@@ -36,7 +36,7 @@ class Systemd(_.supports.Support):
 
         logging.info('Installing systemd service')
 
-        with open(os.path.join(self.root, 'systemd.service'), 'r') as fp:
+        with open(os.path.join(self.root, 'systemd', 'systemd.service'), 'r') as fp:
             conf = fp.read()
 
         try:

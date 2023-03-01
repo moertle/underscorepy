@@ -40,7 +40,7 @@ class Nginx(_.supports.Support):
 
         logging.info('Installing nginx configuration')
 
-        with open(os.path.join(self.root, 'nginx.conf'), 'r') as fp:
+        with open(os.path.join(self.root, 'nginx', 'nginx.conf'), 'r') as fp:
             conf = fp.read()
 
         try:
