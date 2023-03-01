@@ -27,13 +27,16 @@ class Nginx(_.supports.Support):
         self.params.update(kwds)
 
         _.argparser.add_argument(f'--nginx',
-            action='store_true',
+            metavar='<server_name>', default=0, nargs='?',
             help='install nginx config'
             )
 
     async def args(self, name):
-        if not _.args.nginx:
+        if _.args.nginx == 0:
             return
+
+        if _.args.nginx:
+            self.params['server_name'] = _.args.nginx
 
         logging.info('Installing nginx configuration')
 
