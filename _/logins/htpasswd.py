@@ -21,7 +21,7 @@ import _
 
 class Htpasswd(_.logins.Login):
     @classmethod
-    async def load(cls, name):
+    async def init(cls, name):
         pass
 
     @classmethod

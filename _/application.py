@@ -23,6 +23,10 @@ from . import websockets
 
 
 class Application(tornado.web.Application):
+    @classmethod
+    def main(cls):
+        cls()
+
     def __init__(self, ns=None):
         try:
             asyncio.run(self.__async_main(ns))
@@ -32,7 +36,7 @@ class Application(tornado.web.Application):
             logging.error('%s', e)
 
     async def __async_main(self, ns):
-        self.loop   = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
 
         signal.signal(signal.SIGINT,  self.__signalHandler)
         signal.signal(signal.SIGTERM, self.__signalHandler)
@@ -50,10 +54,20 @@ class Application(tornado.web.Application):
         if not _.stop.is_set():
             for name,component in _.login.items():
                 try:
-                    await component.args(name)
+                    await _.wait(component.args(name))
                 except _.error as e:
                     logging.error('%s', e)
                     self.stop()
+                    break
+
+        if not _.stop.is_set():
+            for name,component in _.support.items():
+                try:
+                    await _.wait(component.args(name))
+                except _.error as e:
+                    logging.error('%s', e)
+                    self.stop()
+                    break
 
         if not _.stop.is_set():
             try:

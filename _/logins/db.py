@@ -19,7 +19,7 @@ class Db(_.logins.Login):
     password = 'password'
 
     @classmethod
-    async def load(cls, name):
+    async def init(cls, name):
         _.argparser.add_argument(f'--{name}-add-user',
             metavar='<arg>', nargs=2,
             help='create or update user with password'

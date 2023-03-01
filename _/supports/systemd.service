@@ -1,0 +1,12 @@
+[Unit]
+Description={app}
+After=network.target
+
+[Service]
+Type=simple
+ExecStart={cmdline}
+User={user}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -9,10 +9,10 @@ class Login(tornado.web.RequestHandler):
     async def _(cls, name, **kwds):
         # create a dynamic child class with kwds from the ini file
         _.login[name] = type(cls.__name__, (cls,), kwds)
-        await _.login[name].load(name)
+        await _.login[name].init(name)
 
     @classmethod
-    async def load(cls, name):
+    async def init(cls, name):
         pass
 
     @classmethod
