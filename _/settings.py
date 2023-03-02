@@ -76,8 +76,10 @@ async def load(application, **kwds):
 
     if _.ns:
         iniFiles.append(_.paths(f'{_.ns}.ini'))
+        iniFiles.append(_.paths(f'{_.ns}.ini.local'))
 
     iniFiles.append(_.paths(f'{_.app}.ini'))
+    iniFiles.append(_.paths(f'{_.app}.ini.local'))
 
     # first pass at parsing args to get additional ini files
     _.args,remainder = _.argparser.parse_known_args()
