@@ -49,7 +49,7 @@ class Postgres(_.databases.Database):
         await cursor.close()
         return rows
 
-    async def findOne(self, table, _id, id_column='id'):
+    async def find_one(self, table, _id, id_column='id'):
         statement = f'SELECT * FROM {table} WHERE {id_column}=%s'
         cursor = await self.execute(statement, [_id])
         return cursor.fetchone()
@@ -82,24 +82,23 @@ class Postgres(_.databases.Database):
         if rows is None:
             rows = -1
 
-        raise rows
+        return rows
 
     async def upsert(self, table, values, id_column='id'):
         rows = await self.InsertUnique(table, values, id_column)
         if rows <= 0:
             rows = await self.update(table, values, id_column)
-        raise rows
+        return rows
 
-    async def insertUnique(self, table, values, id_column='id'):
+    async def insert_unique(self, table, values, id_column='id'):
         columns = ','.join('"%s"' % k.lower() for k in values.keys())
         placeholder = ','.join('%s' for x in xrange(len(values)))
-        statement = "INSERT INTO {0} ({1}) SELECT {2} WHERE NOT EXISTS (select {4} from {0} where {4} = '{3}')" \
-            .format(table, columns, placeholder, values[id_column], id_column)
+        statement = f'''INSERT INTO {table} ({columns}) VALUES {placeholder}
+            WHERE NOT EXISTS (select {id_column} from {table} where {id_column} = '{values[id_column]}')'''
 
         cursor = await self.execute(statement, values.values())
 
         rows = cursor.rowcount
         if rows is None:
             rows = -1
-
-        raise rows
+        return rows
