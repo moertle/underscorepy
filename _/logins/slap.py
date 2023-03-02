@@ -53,7 +53,8 @@ class Slap(_.logins.Login):
         username = tornado.escape.xhtml_escape(username)
         password = self.get_argument('password', '')
 
-        ok = await Slap.check(username, password)
+        ok = await self.check(username, password)
         if ok:
-            await self.application.on_login(self, username)
-        self.redirect(self.get_argument('next', '/'))
+            await self.on_login_success({'username':username})
+        else:
+            await self.on_login_failure()

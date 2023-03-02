@@ -49,7 +49,7 @@ class Htpasswd(_.logins.Login):
             if hash.rstrip() != password:
                 break
 
-            await self.application.on_login(self, username)
-            break
+            await self.on_login_success(user)
+            return
 
-        self.redirect(self.get_argument('next', '/'))
+        await self.on_login_failure()

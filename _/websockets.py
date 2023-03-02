@@ -39,7 +39,7 @@ class Protected(Base):
         if not self.session_id:
             raise tornado.web.HTTPError(403)
 
-        session = await self.application.sessions.load_session(self.session_id)
+        session = await _.wait(_.sessions.load_session(self.session_id))
 
 
 class EchoMixin:

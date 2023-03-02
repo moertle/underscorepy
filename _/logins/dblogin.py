@@ -88,17 +88,12 @@ class DbLogin(_.logins.Login):
     async def post(self):
         username = self.get_argument('username', None)
         password = self.get_argument('password', None)
-        next_url = self.get_argument('next', '/')
 
         if username is None or password is None:
             raise tornado.web.HTTPError(500)
 
         user = await self.check(username, password)
-        if user is None:
-            self.clear_cookie('session_id')
-            self.render('login.html', message='Invalid Login', next_url=next_url)
+        if user:
+            await self.on_login_success(user)
         else:
-            session = await self.application.on_login(self, user)
-            await _.wait(self.application.sessions.save_session(session))
-            self.set_secure_cookie('session_id', session['session_id'], expires_days=1)
-            self.redirect(next_url)
+            await self.on_login_failure()

@@ -83,21 +83,14 @@ class Application(tornado.web.Application):
         self.patterns   = []
         self.login_urls = []
 
-        # Tornado settings
-        self.settings = dict(
-            static_path   = _.paths('static'),
-            template_path = _.paths('templates'),
-            debug         = _.args.debug,
-            )
-
         # check if a sessions cache was specified
-        self.sessions = _.config.get(_.app, 'sessions', fallback=None)
-        if self.sessions:
-            logging.debug('Sessions cache: %s', self.sessions)
+        _.sessions = _.config.get(_.app, 'sessions', fallback=None)
+        if _.sessions:
+            logging.debug('Sessions cache: %s', _.sessions)
             try:
-                self.sessions = _.cache[self.sessions]
+                _.sessions = _.cache[_.sessions]
             except KeyError:
-                raise _.error('Unknown sessions cache instance: %s', self.sessions)
+                raise _.error('Unknown sessions cache instance: %s', _.sessions)
 
         # call the child applications entry point
         try:
@@ -164,11 +157,12 @@ class Application(tornado.web.Application):
 
     async def cookie_secret(self):
         'underscore apps can override this function'
-        if self.sessions is not None:
-            return await self.sessions.cookie_secret()
+        if _.sessions is not None:
+            return await _.wait(_.sessions.cookie_secret())
 
     async def on_login(self, handler, user, *args, **kwds):
-        'underscore apps can override this function'
+        'underscore apps should override this function'
+        raise NotImplementedError
 
     def periodic(self, _timeout, fn, *args, **kwds):
         'run a function or coroutine on a recurring basis'
