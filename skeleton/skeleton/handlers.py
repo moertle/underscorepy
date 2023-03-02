@@ -10,7 +10,7 @@ class Records(_.handlers.Protected):
             records = await self.application.db.find(record)
             self.write(dict(data=[dict(r) for r in records]))
         else:
-            record = await self.application.db.findOne(record, record_id, 'username')
+            record = await self.application.db.find_one(record, record_id, 'username')
             self.write(record)
 
 
@@ -26,7 +26,7 @@ class Users(_.handlers.Protected):
                 data.append(record)
             self.write(dict(data=data))
         else:
-            record = await self.application.db.findOne('users', record_id, 'username')
+            record = await self.application.db.find_one('users', record_id, 'username')
             record = dict(record)
             record.pop('password', None)
             self.write(record)

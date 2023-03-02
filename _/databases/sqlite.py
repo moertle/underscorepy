@@ -76,7 +76,7 @@ class SQLite(_.databases.Database):
         await cursor.close()
         return rows
 
-    async def findOne(self, table, value, column='id'):
+    async def find_one(self, table, value, column='id'):
         statement = f'SELECT * FROM {table} WHERE {column}=? LIMIT 1'
 
         try:

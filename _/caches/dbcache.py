@@ -26,7 +26,7 @@ class DbCache(_.caches.Cache):
         self.db = _.database[self.database]
 
     async def cookie_secret(self):
-        secret = await self.db.findOne(self.config, self.key, self.key_col)
+        secret = await self.db.find_one(self.config, self.key, self.key_col)
         if secret:
             secret = secret['value']
         else:
@@ -43,5 +43,5 @@ class DbCache(_.caches.Cache):
         await self.db.upsert(self.table, session)
 
     async def load_session(self, session_id):
-        record = await self.db.findOne(self.table, session_id, self.session_id)
+        record = await self.db.find_one(self.table, session_id, self.session_id)
         return record if record else None

@@ -143,17 +143,17 @@ class Application(tornado.web.Application):
 
         # add the handlers to the logger
         if _.config.getboolean(_.app, 'logging', fallback=False):
-            fullPath = _.paths(f'{_.app}.log')
-            fileLogger = logging.FileHandler(fullPath)
-            fileLogger.setLevel(logging.DEBUG if _.args.debug else logging.INFO)
-            fileLogger.setFormatter(
+            full_path = _.paths(f'{_.app}.log')
+            file_logger = logging.FileHandler(full_path)
+            file_logger.setLevel(logging.DEBUG if _.args.debug else logging.INFO)
+            file_logger.setFormatter(
                 logging.Formatter(
                     fmt = '%(asctime)s %(levelname)-8s %(message)s',
                     datefmt = '%Y-%m-%d %H:%M:%S',
                     )
                 )
-            rootLogger = logging.getLogger()
-            rootLogger.addHandler(fileLogger)
+            root_logger = logging.getLogger()
+            root_logger.addHandler(file_logger)
 
     async def cookie_secret(self):
         'underscore apps can override this function'

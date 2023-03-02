@@ -24,13 +24,13 @@ class Database:
     async def find(self, table, params=None, sort=None):
         raise NotImplementedError
 
-    async def findOne(self, table, _id, id_column='id'):
+    async def find_one(self, table, _id, id_column='id'):
         raise NotImplementedError
 
     async def insert(self, table, values, id_column='id'):
         raise NotImplementedError
 
-    async def insertUnique(self, table, values, id_column='id'):
+    async def insert_unique(self, table, values, id_column='id'):
         raise NotImplementedError
 
     async def upsert(self, table, values, id_column='id'):

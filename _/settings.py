@@ -72,20 +72,20 @@ async def load(application, **kwds):
     _.paths = _.Paths(root=root, ns=_.ns)
 
     # if ns is not passed in use the supplied or derived ns
-    iniFiles = []
+    ini_files = []
 
     if _.ns:
-        iniFiles.append(_.paths(f'{_.ns}.ini'))
-        iniFiles.append(_.paths(f'{_.ns}.ini.local'))
+        ini_files.append(_.paths(f'{_.ns}.ini'))
+        ini_files.append(_.paths(f'{_.ns}.ini.local'))
 
-    iniFiles.append(_.paths(f'{_.app}.ini'))
-    iniFiles.append(_.paths(f'{_.app}.ini.local'))
+    ini_files.append(_.paths(f'{_.app}.ini'))
+    ini_files.append(_.paths(f'{_.app}.ini.local'))
 
     # first pass at parsing args to get additional ini files
     _.args,remainder = _.argparser.parse_known_args()
 
     if _.args.ini:
-        iniFiles.append(_.args.ini)
+        ini_files.append(_.args.ini)
 
     _.args.debug = '--debug' in remainder
     logging.basicConfig(
@@ -95,13 +95,17 @@ async def load(application, **kwds):
         force   = True
         )
 
+    if _.args.debug:
+        for ini_file in ini_files:
+            logging.debug('Loading ini file: %s', ini_file)
+
     try:
-        ok = _.config.read(iniFiles)
+        ok = _.config.read(ini_files)
     except configparser.ParsingError as e:
         raise _.error('Unable to parse file: %s', e)
 
     if not ok:
-        raise _.error('Unable to read config file(s):\n  %s', '\n  '.join(iniFiles))
+        raise _.error('Unable to read config file(s):\n  %s', '\n  '.join(ini_files))
 
     await _.components.load('databases')
     await _.components.load('caches')

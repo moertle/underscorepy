@@ -69,7 +69,7 @@ class DbLogin(_.logins.Login):
             raise tornado.web.HTTPError(500, 'database not specified in ini file')
 
         try:
-            record = await db.findOne(cls.table, username, cls.username)
+            record = await db.find_one(cls.table, username, cls.username)
         except _.error as e:
             logging.warning('%s', e)
             record = None

@@ -19,12 +19,12 @@ _.database = {}
 _.login    = {}
 _.support  = {}
 
-async def load(componentType):
-    if componentType not in _.config:
+async def load(component_type):
+    if component_type not in _.config:
         return
 
-    for name in _.config[componentType]:
-        component = _.config[componentType][name]
+    for name in _.config[component_type]:
+        component = _.config[component_type][name]
         if component is None:
             component = name
 
@@ -33,20 +33,20 @@ async def load(componentType):
                 component,attr = component.rsplit('.', 1)
             except ValueError:
                 attr = None
-            importPath = component[1:]
+            import_path = component[1:]
         else:
             attr = None
-            importPath = f'_.{componentType}.{component}'
+            import_path = f'_.{component_type}.{component}'
 
         try:
-            module = importlib.import_module(importPath)
+            module = importlib.import_module(import_path)
         except ModuleNotFoundError:
-            raise _.error('Unknown module: %s', importPath)
+            raise _.error('Unknown module: %s', import_path)
 
         cls = None
         if not attr:
-            for attrName in dir(module):
-                attr = getattr(module, attrName)
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
                 if not isinstance(attr, type):
                     continue
                 if not hasattr(attr, '_'):
@@ -56,7 +56,7 @@ async def load(componentType):
             cls = getattr(module, attr)
 
         if not cls:
-            logging.error('%s: %s module not found', component, componentType)
+            logging.error('%s: %s module not found', component, component_type)
             continue
 
         try:
