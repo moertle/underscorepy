@@ -18,5 +18,6 @@ class Protected(WebSocket):
         self.session_id = self.get_secure_cookie('session_id')
         if not self.session_id:
             raise tornado.web.HTTPError(403)
-
-        session = await _.wait(_.sessions.load_session(self.session_id))
+        self.session = await _.wait(_.sessions.load_session(self.session_id))
+        if not self.session:
+            raise tornado.web.HTTPError(403)

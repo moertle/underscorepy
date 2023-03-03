@@ -17,4 +17,4 @@ class EchoMixin:
             ws.write_message(msg)
 
 
-__all__ = _.all(dir(), suffix='Mixin')
+__all__ = _.all(suffix='Mixin')

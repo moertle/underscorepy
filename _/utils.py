@@ -8,6 +8,7 @@
 
 import asyncio
 import os
+import inspect
 
 
 async def wait(result):
@@ -23,12 +24,38 @@ class Paths(object):
         return os.path.join(self.root, self.ns, *args)
 
 
-all = lambda members, prefix='', suffix='': [
-    member for member in members
-    if not member.startswith('_')
-       and member.startswith(prefix)
-       and member.endswith(suffix)
-    ]
+def all(instance=object, cls=None, prefix='', suffix=''):
+    'overkill convenience function for import * from module'
+    __all__ = []
+    module = inspect.getmodule(inspect.currentframe().f_back)
+    root = module.__name__.rsplit('.', 1)[0] + '.'
+    for name in dir(module):
+        # ignore built-ins
+        if name.startswith('_'):
+            continue
+        # filter prefix and suffix if specified
+        if not name.startswith(prefix):
+            continue
+        if not name.endswith(suffix):
+            continue
 
+        obj = getattr(module, name)
 
-__all__ = all(dir())
+        # filter modules unless they are sub-modules
+        if isinstance(obj, type(module)):
+            if not obj.__name__.startswith(root):
+                continue
+        # a way to filter out "local" variables
+        if not isinstance(obj, instance):
+            continue
+        # only include sub-classes if specified
+        if cls and issubclass(obj, cls):
+            continue
+
+        __all__.append(name)
+    return __all__
+
+# to pass as a filter to the all function
+function = type(lambda: None)
+
+__all__ = all()
