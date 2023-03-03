@@ -16,14 +16,14 @@ class Nginx(_.supports.Support):
     async def init(self, name, **kwds):
         self.params = dict(
             ns         = _.ns,
-            app        = _.app,
+            name       = _.name,
             web_root   = '/var/www/html',
             listen_ip4 = '0.0.0.0',
             listen_ip6 = '[::]',
             conf_path  = '/etc/nginx/sites-available/{server_name}.conf',
             )
 
-        self.params.update(dict(_.config[_.app]))
+        self.params.update(dict(_.config[_.name]))
         self.params.update(kwds)
 
         _.argparser.add_argument(f'--nginx',

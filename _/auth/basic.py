@@ -22,7 +22,7 @@ def basic(realm='Authentication'):
             if auth.startswith('Basic '):
                 auth = binascii.a2b_base64(auth[6:]).decode('utf-8')
                 username,password = auth.split(':', 1)
-                component = _.config.get(_.app, 'basic', fallback=None)
+                component = _.config.get(_.name, 'basic', fallback=None)
                 if not component:
                     raise tornado.web.HTTPError(500, 'No component specified for basic auth')
                 try:

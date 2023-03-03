@@ -48,6 +48,7 @@ class DbLogin(_.logins.Login):
 
             record[cls.username] = username
             record[cls.password] = password
+
             await db.upsert(cls.table, record)
             _.stop.set()
 

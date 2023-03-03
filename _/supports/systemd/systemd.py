@@ -17,10 +17,10 @@ class Systemd(_.supports.Support):
     async def init(self, name, **kwds):
         self.params = dict(
             ns        = _.ns,
-            app       = _.app,
+            name      = _.name,
             cmdline   = f'{os.path.abspath(sys.argv[0])}',
             user      = 'nobody',
-            conf_path = '/etc/systemd/system/{app}.service',
+            conf_path = '/etc/systemd/system/{name}.service',
             )
 
         self.params.update(kwds)

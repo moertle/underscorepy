@@ -36,9 +36,9 @@ class Application(tornado.web.Application):
         signal.signal(signal.SIGINT,  self.__signalHandler)
         signal.signal(signal.SIGTERM, self.__signalHandler)
 
-        app = self.__class__.__name__.lower()
+        name = self.__class__.__name__.lower()
         try:
-            await _.settings.load(self, ns=ns, app=app)
+            await _.settings.load(self, ns=ns, name=name)
             await self.logging()
         except _.error as e:
             if _.args.debug:
@@ -81,7 +81,7 @@ class Application(tornado.web.Application):
         self.login_urls = []
 
         # check if a sessions cache was specified
-        _.sessions = _.config.get(_.app, 'sessions', fallback=None)
+        _.sessions = _.config.get(_.name, 'sessions', fallback=None)
         if _.sessions:
             logging.debug('Sessions cache: %s', _.sessions)
             try:
@@ -139,8 +139,8 @@ class Application(tornado.web.Application):
         'underscore apps can override or extend this function'
 
         # add the handlers to the logger
-        if _.config.getboolean(_.app, 'logging', fallback=False):
-            full_path = _.paths(f'{_.app}.log')
+        if _.config.getboolean(_.name, 'logging', fallback=False):
+            full_path = _.paths(f'{_.name}.log')
             file_logger = logging.FileHandler(full_path)
             file_logger.setLevel(logging.DEBUG if _.args.debug else logging.INFO)
             file_logger.setFormatter(
@@ -190,7 +190,7 @@ class Application(tornado.web.Application):
             stop = handler(signum, frame)
             if stop:
                 return
-        logging.info('Terminating %s on %s signal', _.app, signame)
+        logging.info('Terminating %s on %s signal', _.name, signame)
         self.loop.call_soon_threadsafe(self.stop)
 
     # demonstrate a specific signal handler

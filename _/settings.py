@@ -58,14 +58,14 @@ async def load(application, **kwds):
         root = os.path.dirname(caller)
     root = os.path.abspath(root)
 
-    _.app = kwds.get('app', None)
-    if _.app is None:
+    _.name = kwds.get('name', None)
+    if _.name is None:
         # get the name of the script
-        _.app = os.path.basename(caller)
-        if _.app.endswith('.py'):
-            _.app = _.app[:-3]
+        _.name = os.path.basename(caller)
+        if _.name.endswith('.py'):
+            _.name = _.name[:-3]
 
-    _.ns = kwds.get('ns', _.app)
+    _.ns = kwds.get('ns', _.name)
     if _.ns is None:
         _.ns = ''
 
@@ -78,8 +78,8 @@ async def load(application, **kwds):
         ini_files.append(_.paths(f'{_.ns}.ini'))
         ini_files.append(_.paths(f'{_.ns}.ini.local'))
 
-    ini_files.append(_.paths(f'{_.app}.ini'))
-    ini_files.append(_.paths(f'{_.app}.ini.local'))
+    ini_files.append(_.paths(f'{_.name}.ini'))
+    ini_files.append(_.paths(f'{_.name}.ini.local'))
 
     # first pass at parsing args to get additional ini files
     _.args,remainder = _.argparser.parse_known_args()
@@ -128,10 +128,10 @@ async def load(application, **kwds):
     _.args = _.argparser.parse_args()
 
     if not _.args.address:
-        _.args.address = _.config.get(_.app, 'address', fallback='127.0.0.1')
+        _.args.address = _.config.get(_.name, 'address', fallback='127.0.0.1')
 
     if not _.args.port:
-        _.args.port = _.config.getint(_.app, 'port', fallback=8080)
+        _.args.port = _.config.getint(_.name, 'port', fallback=8080)
 
     # Tornado settings
     application.settings = dict(
