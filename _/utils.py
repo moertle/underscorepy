@@ -10,8 +10,6 @@ import asyncio
 import os
 
 
-__all__ = ['wait','Paths']
-
 async def wait(result):
     return result if not asyncio.iscoroutine(result) else await result
 
@@ -22,3 +20,9 @@ class Paths(object):
 
     def __call__(self, *args):
         return os.path.join(self.root, self.ns, *args)
+
+def all(vars):
+    return [n for n in vars if not n.startswith('_')]
+
+
+__all__ = all(dir())

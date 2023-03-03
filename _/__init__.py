@@ -23,10 +23,13 @@ class error(Exception):
     def __str__(self):
         return self.message
 
+from .utils import *
+
 from . import version
 from . import settings
 from . import auth
 from . import components
+from . import handlers
+from . import websockets
 
-from .utils       import *
 from .application import Application
