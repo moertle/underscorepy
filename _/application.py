@@ -22,7 +22,7 @@ import _
 class Application(tornado.web.Application):
     @classmethod
     def main(cls, ns=None):
-        self = cls()
+        _.application = self = cls()
         try:
             asyncio.run(self.__async_main(ns))
         except _.error as e:

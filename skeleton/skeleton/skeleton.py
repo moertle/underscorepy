@@ -32,6 +32,10 @@ class Skeleton(_.Application):
     async def status(self):
         logging.info('Periodic: %s', time.ctime())
 
+    async def on_dblogin_add_user(self, name, record):
+        'allow apps to make adjustments to the record before calling sql statement'
+        print(name, record)
+
     async def on_login(self, handler, user):
         session = {
             'session_id' : str(uuid.uuid4()),

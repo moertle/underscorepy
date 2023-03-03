@@ -49,6 +49,12 @@ class DbLogin(_.logins.Login):
             record[cls.username] = username
             record[cls.password] = password
 
+            callback = getattr(_.application, f'on_{name}_add_user', None)
+            if callback is None:
+                callback = getattr(_.application, 'on_dblogin_add_user', None)
+            if callback:
+                await _.wait(callback(name, record))
+
             await db.upsert(cls.table, record)
             _.stop.set()
 
