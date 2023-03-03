@@ -18,9 +18,6 @@ import tornado.web
 
 import _
 
-from . import handlers
-from . import websockets
-
 
 class Application(tornado.web.Application):
     @classmethod

@@ -6,13 +6,12 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import tornado.web
 import tornado.websocket
 
 import _
 
 
-class Base(tornado.websocket.WebSocketHandler):
+class WebSocket(tornado.websocket.WebSocketHandler):
     def initialize(self, websockets):
         self.websockets = websockets
 
@@ -31,20 +30,3 @@ class Base(tornado.websocket.WebSocketHandler):
 
     def on_message(self, msg):
         raise NotImplementedError
-
-
-class Protected(Base):
-    async def prepare(self):
-        self.session_id = self.get_secure_cookie('session_id')
-        if not self.session_id:
-            raise tornado.web.HTTPError(403)
-
-        session = await _.wait(_.sessions.load_session(self.session_id))
-
-
-class EchoMixin:
-    def on_message(self, msg):
-        for ws in self.websockets:
-            if ws is self:
-                continue
-            ws.write_message(msg)
