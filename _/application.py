@@ -185,6 +185,18 @@ class Application(tornado.web.Application):
         logging.debug('Setting stop event')
         _.stop.set()
 
+    # demonstrate a specific signal handler
+    # and print newline after ^C on terminals
+    def on_SIGINT(self, signum, frame):
+        print()
+
     def __signalHandler(self, signum, frame):
-        logging.info('Terminating %s', _.app)
+        'handle signals in a thread-safe way'
+        signame = signal.Signals(signum).name
+        handler = getattr(self, f'on_{signame}', None)
+        if handler:
+            stop = handler(signum, frame)
+            if stop:
+                return
+        logging.info('Terminating %s on %s signal', _.app, signame)
         self.loop.call_soon_threadsafe(self.stop)
