@@ -99,7 +99,7 @@ class Application(tornado.web.Application):
             self.settings['cookie_secret'] = await self.cookie_secret()
 
         for instance,cls in _.login.items():
-            self.login_urls.append((f'/login/{instance}', cls))
+            self.login_urls.append((f'/login/({instance})', cls))
 
         if self.login_urls:
             self.patterns = self.login_urls + self.patterns
@@ -115,6 +115,7 @@ class Application(tornado.web.Application):
 
         await self.__listen()
         await _.stop.wait()
+        await _.wait(self.on_stop())
 
     async def __listen(self, **kwds):
         # call the Tornado Application init here to give children a chance
@@ -177,6 +178,9 @@ class Application(tornado.web.Application):
                 except Exception as e:
                     logging.exception(e)
         return asyncio.create_task(_periodic())
+
+    def on_stop(self):
+        pass
 
     def stop(self):
         logging.debug('Setting stop event')
