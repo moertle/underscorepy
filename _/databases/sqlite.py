@@ -50,9 +50,11 @@ class SQLite(_.databases.Database):
         await self.conn.close()
 
     async def execute(self, statement, args):
+        lastrowid = 0
         cursor = await self.conn.cursor()
         try:
             await cursor.execute(statement, args)
+            lastrowid = cursor.lastrowid
         except sqlite3.OperationalError as e:
             raise _.error('Operational error: %s', e)
         except sqlite3.ProgrammingError as e:
@@ -62,6 +64,7 @@ class SQLite(_.databases.Database):
         finally:
             await cursor.close()
         await self.conn.commit()
+        return lastrowid
 
     async def find(self, table, params=None, sort=None):
         statement = f'SELECT * FROM {table}'
@@ -106,9 +109,9 @@ class SQLite(_.databases.Database):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT INTO {table} ({columns}) VALUES ({placeholder})'
-        await self.execute(statement, list(values.values()) + [where])
+        lastrowid = await self.execute(statement, list(values.values()))
         if id_column not in values:
-            values[id_column] = cursor.lastrowid
+            values[id_column] = lastrowid
 
     async def update(self, table, values, column='id'):
         where = values.get(column)
