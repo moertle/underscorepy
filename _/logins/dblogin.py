@@ -30,6 +30,15 @@ class DbLogin(_.logins.Login):
             help='list users'
             )
 
+        kwds = {
+            'name'     : name,
+            'database' : cls.database,
+            'table'    : cls.table,
+            'username' : cls.username,
+            'password' : cls.password,
+        }
+        cls.handler = type(f'{name}_handler', (DBLoginData,_.handlers.Protected), kwds)
+
     @classmethod
     async def args(cls, name):
         try:
@@ -49,9 +58,9 @@ class DbLogin(_.logins.Login):
             record[cls.username] = username
             record[cls.password] = password
 
-            callback = getattr(_.application, f'on_{name}_add_user', None)
+            callback = getattr(_.application, f'on_{name}_update', None)
             if callback is None:
-                callback = getattr(_.application, 'on_dblogin_add_user', None)
+                callback = getattr(_.application, 'on_dblogin_update', None)
             if callback:
                 await _.wait(callback(name, record))
 
@@ -92,7 +101,7 @@ class DbLogin(_.logins.Login):
         record.pop(cls.password)
         return record
 
-    async def post(self):
+    async def post(self, name):
         username = self.get_argument('username', None)
         password = self.get_argument('password', None)
 
@@ -104,3 +113,75 @@ class DbLogin(_.logins.Login):
             await self.on_login_success(user)
         else:
             await self.on_login_failure()
+
+
+class DBLoginData(_.handlers.Protected):
+    async def prepare(self):
+        await _.handlers.Protected.prepare(self)
+        try:
+            self.db = _.database[self.database]
+        except KeyError:
+            raise tornado.web.HTTPError(500, f'database "{self.database}" not defined in ini file')
+        except AttributeError:
+            raise tornado.web.HTTPError(500, 'database not specified in ini file')
+
+    # READ
+    @tornado.web.authenticated
+    async def get(self, name, username=None):
+        if username:
+            record = await self.db.find_one(self.table, username, self.username)
+            record.pop(self.password, None)
+            self.write(record)
+        else:
+            records = await self.db.find(self.table)
+            data = []
+            for record in records:
+                record = dict(record)
+                record.pop(self.password, None)
+                data.append(record)
+            self.write({'data':data})
+
+    # UPDATE
+    @tornado.web.authenticated
+    async def put(self, name, username=None):
+        try:
+            user = json.loads(self.request.body)
+        except json.decoder.JSONDecodeError:
+            raise tornado.web.HTTPError(500)
+
+        username = user.get(self.username)
+        password = user.get(self.password)
+        if not username or not password:
+            raise tornado.web.HTTPError(500)
+
+        record = dict(_.config[name])
+        record.pop('database', None)
+        record.pop('table',    None)
+        record.update(user)
+        record[self.username] = username
+        record[self.password] = password
+
+        callback = getattr(_.application, f'on_{name}_update', None)
+        if callback is None:
+            callback = getattr(_.application, 'on_dblogin_update', None)
+        if callback:
+            await _.wait(callback(name, record))
+
+        if record[self.password] == password:
+            password = _.auth.simple_hash(username + password)
+            record[self.password] = password
+
+        await self.db.insert(self.table, record, self.username)
+        self.set_status(204)
+
+    # DELETE
+    @tornado.web.authenticated
+    async def delete(self, name, username=None):
+        self.set_status(204)
+        await self.db.delete(self.table, username, self.username)
+
+        callback = getattr(_.application, f'on_{name}_delete', None)
+        if callback is None:
+            callback = getattr(_.application, 'on_dblogin_delete', None)
+        if callback:
+            await _.wait(callback(self, name, username))
