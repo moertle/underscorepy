@@ -45,3 +45,8 @@ class Skeleton(_.Application):
             'time'       : int(time.time() * 1000),
             }
         return session
+
+    async def is_session_expired(self, session, expires):
+        created = session['time'] / 1000
+        elapsed = (time.time() - created) / 3600
+        return elapsed > expires

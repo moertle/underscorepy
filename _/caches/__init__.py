@@ -13,11 +13,18 @@ class Cache:
     @classmethod
     async def _(cls, name, **kwds):
         # create a dynamic child class with kwds from the ini file
-        subclass = type(cls.__name__, (cls,), kwds)
-        #await subclass.init(name)
-        self = subclass()
-        await self.init(**kwds)
-        _.cache[name] = self
+        try:
+            members = dict(_.config['sessions'])
+        except KeyError:
+            members = {}
+
+        members['expires']  = int(members.get('expires',  24))
+        members['interval'] = int(members.get('interval', 60))
+        members.update(kwds)
+
+        # instantiate the derived class
+        _.cache[name] = type(cls.__name__, (cls,), members)()
+        await _.cache[name].init(**kwds)
 
     async def init(self, **kwds):
         pass

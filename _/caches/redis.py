@@ -44,7 +44,7 @@ class Redis(_.caches.Cache):
         session_id = super(Redis, self).save_session(session)
         async with self.connection.pipeline(transaction=True) as pipe:
             await pipe.set(f'session/{session_id}', json.dumps(session))
-            await pipe.expire(f'session/{session_id}', 86400)
+            await pipe.expire(f'session/{session_id}', self.expires * 3600)
             await pipe.execute()
 
     async def load_session(self, session_id):

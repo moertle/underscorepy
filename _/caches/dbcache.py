@@ -6,9 +6,10 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import os
 import base64
 import json
+import logging
+import os
 
 import _
 
@@ -24,6 +25,8 @@ class DbCache(_.caches.Cache):
 
     async def init(self, **kwds):
         self.db = _.database[self.database]
+        # interval comes from the [sessions] section of the ini
+        _.application.periodic(self.interval, self.clear)
 
     async def cookie_secret(self):
         secret = await self.db.find_one(self.config, self.key, self.key_col)
@@ -44,4 +47,15 @@ class DbCache(_.caches.Cache):
 
     async def load_session(self, session_id):
         record = await self.db.find_one(self.table, session_id, self.session_id)
-        return record if record else None
+        if not record:
+            return None
+        if await _.wait(_.application.is_session_expired(record, self.expires)):
+            return None
+        return record
+
+    async def clear(self):
+        records = await self.db.find(self.table)
+        for record in records:
+            if await _.wait(_.application.is_session_expired(record, self.expires)):
+                logging.debug('Removing expired session: %s', record['session_id'])
+                await self.db.delete(self.table, record['session_id'], 'session_id')
