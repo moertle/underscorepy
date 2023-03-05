@@ -13,7 +13,7 @@ import _
 
 
 class Memory(_.caches.Cache):
-    async def init(self, **kwds):
+    async def init(self, name, **kwds):
         self.mem = {}
 
     def cookie_secret(self):

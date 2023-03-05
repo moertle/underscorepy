@@ -51,4 +51,4 @@ class Systemd(_.supports.Support):
         except Exception as e:
             raise _.error('Could not write systemd service: %s', e)
 
-        _.stop.set()
+        _.application.stop()

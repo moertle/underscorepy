@@ -55,4 +55,4 @@ class Nginx(_.supports.Support):
         except Exception as e:
             raise _.error('Could not write nginx configuration: %s', e)
 
-        _.stop.set()
+        _.application.stop()

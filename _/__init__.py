@@ -6,14 +6,11 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import asyncio
 import os
 
 root = os.path.dirname(__file__)
 root = os.path.join(root, '..')
 root = os.path.abspath(root)
-
-stop = asyncio.Event()
 
 # a generic error class for throwing exceptions
 class error(Exception):

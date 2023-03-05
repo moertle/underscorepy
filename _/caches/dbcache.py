@@ -23,7 +23,7 @@ class DbCache(_.caches.Cache):
     table      = 'sessions'
     session_id = 'session_id'
 
-    async def init(self, **kwds):
+    async def init(self, name, **kwds):
         self.db = _.database[self.database]
         # interval comes from the [sessions] section of the ini
         _.application.periodic(self.interval, self.clear)

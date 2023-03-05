@@ -32,6 +32,7 @@ class Application(tornado.web.Application):
 
     async def __async_main(self, ns):
         self.loop = asyncio.get_event_loop()
+        self._stop_event = asyncio.Event()
 
         signal.signal(signal.SIGINT,  self.__signalHandler)
         signal.signal(signal.SIGTERM, self.__signalHandler)
@@ -46,7 +47,7 @@ class Application(tornado.web.Application):
             logging.error('%s', e)
             self.stop()
 
-        if not _.stop.is_set():
+        if not self._stop_event.is_set():
             for name,component in _.login.items():
                 try:
                     await _.wait(component.args(name))
@@ -55,7 +56,7 @@ class Application(tornado.web.Application):
                     self.stop()
                     break
 
-        if not _.stop.is_set():
+        if not self._stop_event.is_set():
             for name,component in _.support.items():
                 try:
                     await _.wait(component.args(name))
@@ -64,7 +65,7 @@ class Application(tornado.web.Application):
                     self.stop()
                     break
 
-        if not _.stop.is_set():
+        if not self._stop_event.is_set():
             try:
                 await self.__async_init()
             except _.error as e:
@@ -114,7 +115,7 @@ class Application(tornado.web.Application):
             )
 
         await self.__listen()
-        await _.stop.wait()
+        await self._stop_event.wait()
         await _.wait(self.on_stop())
 
     async def __listen(self, **kwds):
@@ -159,7 +160,7 @@ class Application(tornado.web.Application):
             return await _.wait(_.sessions.cookie_secret())
 
     async def on_login(self, handler, user, *args, **kwds):
-        'underscore apps should override this function'
+        'underscore apps should override this function if a login is specified'
         raise NotImplementedError
 
     async def is_session_expired(self, session, expires):
@@ -173,7 +174,7 @@ class Application(tornado.web.Application):
                 # bail if the stop event is set
                 # otherwise run the function after the timeout occurs
                 try:
-                    await asyncio.wait_for(_.stop.wait(), timeout=_timeout)
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=_timeout)
                     break
                 except asyncio.TimeoutError as e:
                     pass
@@ -183,12 +184,12 @@ class Application(tornado.web.Application):
                     logging.exception(e)
         return asyncio.create_task(_periodic())
 
-    def on_stop(self):
-        pass
-
     def stop(self):
         logging.debug('Setting stop event')
-        _.stop.set()
+        self._stop_event.set()
+
+    def on_stop(self):
+        pass
 
     def __signalHandler(self, signum, frame):
         'handle signals in a thread-safe way'

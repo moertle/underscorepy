@@ -14,16 +14,20 @@ import tornado.web
 import _
 
 
+# component instance containers
 _.cache    = {}
 _.database = {}
 _.login    = {}
 _.support  = {}
 
 async def load(component_type):
+    # skip components not specified in the config
     if component_type not in _.config:
         return
 
+    # iterate over the components specified in the config
     for name in _.config[component_type]:
+        # check if the component is aliased
         component = _.config[component_type][name]
         if component is None:
             component = name

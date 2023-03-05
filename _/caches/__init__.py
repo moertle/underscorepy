@@ -24,7 +24,7 @@ class Cache:
 
         # instantiate the derived class
         _.cache[name] = type(cls.__name__, (cls,), members)()
-        await _.cache[name].init(**kwds)
+        await _.cache[name].init(name, **kwds)
 
     async def init(self, **kwds):
         pass

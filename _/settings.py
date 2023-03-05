@@ -19,11 +19,12 @@ import traceback
 import _
 
 
+# override exit to set the stop event
 class ArgParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
         if message:
             self._print_message(message, sys.stderr)
-        _.stop.set()
+        _.application.stop()
 
 _.argparser = ArgParser(add_help=False)
 
