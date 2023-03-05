@@ -37,7 +37,7 @@ class DbLogin(_.logins.Login):
             'username' : cls.username,
             'password' : cls.password,
         }
-        cls.handler = type(f'{name}_handler', (DBLoginData,_.handlers.Protected), kwds)
+        cls.handler = type(f'{name}_handler', (DBLoginRecords,_.handlers.Protected), kwds)
 
     @classmethod
     async def args(cls, name):
@@ -65,12 +65,12 @@ class DbLogin(_.logins.Login):
                 await _.wait(callback(name, record))
 
             await db.upsert(cls.table, record)
-            _.stop.set()
+            _.application.stop()
 
         if getattr(_.args, f'{name}_list_users'):
             for user in await db.find(cls.table):
                 print(user[cls.username])
-            _.stop.set()
+            _.application.stop()
 
     @classmethod
     async def check(cls, username, password):
@@ -115,7 +115,7 @@ class DbLogin(_.logins.Login):
             await self.on_login_failure()
 
 
-class DBLoginData(_.handlers.Protected):
+class DBLoginRecords(_.handlers.Protected):
     async def prepare(self):
         await _.handlers.Protected.prepare(self)
         try:
@@ -165,7 +165,7 @@ class DBLoginData(_.handlers.Protected):
         if callback is None:
             callback = getattr(_.application, 'on_dblogin_update', None)
         if callback:
-            await _.wait(callback(name, record))
+            await _.wait(callback(self, name, record))
 
         if record[self.password] == password:
             password = _.auth.simple_hash(username + password)

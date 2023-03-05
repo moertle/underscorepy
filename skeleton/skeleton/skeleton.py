@@ -32,7 +32,7 @@ class Skeleton(_.Application):
     async def status(self):
         logging.info('Periodic: %s', time.ctime())
 
-    async def on_dblogin_update(self, name, record):
+    async def on_dblogin_update(self, handler, name, record):
         'allow apps to make adjustments to the record before calling sql statement'
         print(name, record)
 
