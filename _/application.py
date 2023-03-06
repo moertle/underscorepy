@@ -163,10 +163,6 @@ class Application(tornado.web.Application):
         'underscore apps should override this function if a login is specified'
         raise NotImplementedError
 
-    async def is_session_expired(self, session, expires):
-        'underscore apps should override this function'
-        raise NotImplementedError
-
     def periodic(self, _timeout, fn, *args, **kwds):
         'run a function or coroutine on a recurring basis'
         async def _periodic():

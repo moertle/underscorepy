@@ -20,15 +20,46 @@ class DbLogin(_.logins.Login):
 
     @classmethod
     async def init(cls, name):
-        _.argparser.add_argument(f'--{name}-add-user',
+        try:
+            db = _.database[cls.database]
+        except AttributeError:
+            raise _.error('No database specified for %s', name)
+
+        # if only one login specified use short argument
+        prefix = f'{name}-' if len(_.config['logins']) > 1 else ''
+
+        _.argparser.add_argument(f'--{prefix}add-user',
             metavar='<arg>', nargs=2,
             help='create or update user with password'
             )
 
-        _.argparser.add_argument(f'--{name}-list-users',
+        _.argparser.add_argument(f'--{prefix}list-users',
             action='store_true',
             help='list users'
             )
+
+        kwds = dict(_.config[name])
+        table = {
+            cls.username: 'TEXT UNIQUE NOT NULL',
+            cls.password: 'TEXT NOT NULL',
+
+        }
+        table.update(kwds)
+        table.pop('database', None)
+        table.pop('table',    None)
+        table.pop('defaults', None)
+
+        for key,value in table.items():
+            if value is None:
+                table[key] = 'TEXT NOT NULL'
+
+        rows = ', '.join(f'{k} {v}' for k,v in table.items())
+        statement = f'CREATE TABLE IF NOT EXISTS {cls.table}({rows})'
+        try:
+            await db.execute(statement)
+        except _.error as e:
+            logging.error('\n\n%s\n', statement)
+            raise
 
         kwds = {
             'name'     : name,
@@ -46,28 +77,31 @@ class DbLogin(_.logins.Login):
         except AttributeError:
             raise _.error('No database specified for %s', name)
 
-        add_user = getattr(_.args, f'{name}_add_user')
+        # if only one login specified use short argument
+        prefix = f'{name}_' if len(_.config['logins']) > 1 else ''
+
+        add_user = getattr(_.args, f'{prefix}add_user')
         if add_user:
             username,password = add_user
             password = _.auth.simple_hash(username + password)
 
-            record = dict(_.config[name])
+            record = dict((k,None) for k in _.config[name])
             record.pop('database', None)
             record.pop('table',    None)
 
             record[cls.username] = username
             record[cls.password] = password
 
-            callback = getattr(_.application, f'on_{name}_update', None)
+            callback = getattr(_.application, f'on_{name}_add_user', None)
             if callback is None:
-                callback = getattr(_.application, 'on_dblogin_update', None)
+                callback = getattr(_.application, 'on_dblogin_add_user', None)
             if callback:
-                await _.wait(callback(None, name, record))
+                await _.wait(callback(name, record))
 
             await db.upsert(cls.table, record)
             _.application.stop()
 
-        if getattr(_.args, f'{name}_list_users'):
+        if getattr(_.args, f'{prefix}list_users'):
             for user in await db.find(cls.table):
                 print(user[cls.username])
             _.application.stop()
@@ -127,7 +161,7 @@ class DBLoginRecords(_.handlers.Protected):
 
     # READ
     @tornado.web.authenticated
-    async def get(self, name, username=None):
+    async def get(self, username=None):
         if username:
             record = await self.db.find_one(self.table, username, self.username)
             record.pop(self.password, None)
@@ -143,7 +177,7 @@ class DBLoginRecords(_.handlers.Protected):
 
     # UPDATE
     @tornado.web.authenticated
-    async def put(self, name, username=None):
+    async def put(self, username=None):
         try:
             user = json.loads(self.request.body)
         except json.decoder.JSONDecodeError:
@@ -154,18 +188,18 @@ class DBLoginRecords(_.handlers.Protected):
         if not username or not password:
             raise tornado.web.HTTPError(500)
 
-        record = dict(_.config[name])
+        record = dict(_.config[self.name])
         record.pop('database', None)
         record.pop('table',    None)
         record.update(user)
         record[self.username] = username
         record[self.password] = password
 
-        callback = getattr(_.application, f'on_{name}_update', None)
+        callback = getattr(_.application, f'on_{self.name}_update', None)
         if callback is None:
             callback = getattr(_.application, 'on_dblogin_update', None)
         if callback:
-            await _.wait(callback(self, name, record))
+            await _.wait(callback(self, self.name, record))
 
         if record[self.password] == password:
             password = _.auth.simple_hash(username + password)
@@ -176,12 +210,12 @@ class DBLoginRecords(_.handlers.Protected):
 
     # DELETE
     @tornado.web.authenticated
-    async def delete(self, name, username=None):
+    async def delete(self, username=None):
         self.set_status(204)
         await self.db.delete(self.table, username, self.username)
 
-        callback = getattr(_.application, f'on_{name}_delete', None)
+        callback = getattr(_.application, f'on_{self.name}_delete', None)
         if callback is None:
             callback = getattr(_.application, 'on_dblogin_delete', None)
         if callback:
-            await _.wait(callback(self, name, username))
+            await _.wait(callback(self, self.name, username))

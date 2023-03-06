@@ -14,6 +14,9 @@ import _
 
 class Memory(_.caches.Cache):
     async def init(self, name, **kwds):
+        if not hasattr(_.application, 'is_session_expired'):
+            raise _.error('Application does not have is_session_expired function defined')
+
         self.mem = {}
 
     def cookie_secret(self):
