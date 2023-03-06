@@ -12,21 +12,3 @@ class Records(_.handlers.Protected):
         else:
             record = await self.application.db.find_one(record, record_id, 'username')
             self.write(record)
-
-
-class Users(_.handlers.Protected):
-    @tornado.web.authenticated
-    async def get(self, record_id=None):
-        if not record_id:
-            records = await self.application.db.find('users')
-            data = []
-            for record in records:
-                record = dict(record)
-                record.pop('password', None)
-                data.append(record)
-            self.write(dict(data=data))
-        else:
-            record = await self.application.db.find_one('users', record_id, 'username')
-            record = dict(record)
-            record.pop('password', None)
-            self.write(record)

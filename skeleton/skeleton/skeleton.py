@@ -20,9 +20,12 @@ class Skeleton(_.Application):
         self.db = _.database['sqlite']
 
         self.patterns = [
-            ( r'/records/users/([a-z]*)',    handlers.Users ),
+            ( r'/records/dblogin/(.*)',      _.login['dblogin'].handler ),
+            ( r'/records/dbcache/(.*)',      _.cache['dbcache'].handler ),
             ( r'/records/([a-z]+)/([a-z]*)', handlers.Records ),
+
             ( r'/ws',       SkeletonSocket, { 'websockets' : self.websockets } ),
+
             ( r'/([a-z]*)', _.handlers.Protected ),
             ]
 
@@ -32,17 +35,27 @@ class Skeleton(_.Application):
     async def status(self):
         logging.info('Periodic: %s', time.ctime())
 
+    async def on_dblogin_add_user(self, name, record):
+        'allow apps to make adjustments to the record before calling sql statement'
+        record['disabled'] = False
+        record['isadmin']  = True
+        record['created']  = _.now()
+
     async def on_dblogin_update(self, handler, name, record):
         'allow apps to make adjustments to the record before calling sql statement'
-        print(name, record)
+        print(name)
+        print(record)
 
     async def on_login(self, handler, user):
+        user['last'] = int(time.time() * 1000)
+        await self.db.update('users', user, 'username')
+
         session = {
             'session_id' : str(uuid.uuid4()),
             'username'   : user['username'],
             'agent'      : handler.request.headers.get('User-Agent', ''),
             'ip'         : handler.request.remote_ip,
-            'time'       : int(time.time() * 1000),
+            'time'       : _.now(),
             }
         return session
 
