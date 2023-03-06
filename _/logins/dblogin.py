@@ -62,7 +62,7 @@ class DbLogin(_.logins.Login):
             if callback is None:
                 callback = getattr(_.application, 'on_dblogin_update', None)
             if callback:
-                await _.wait(callback(name, record))
+                await _.wait(callback(None, name, record))
 
             await db.upsert(cls.table, record)
             _.application.stop()
