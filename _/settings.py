@@ -108,10 +108,15 @@ async def load(application, **kwds):
     if not ok:
         raise _.error('Unable to read config file(s):\n  %s', '\n  '.join(ini_files))
 
-    await _.components.load('databases')
-    await _.components.load('caches')
-    await _.components.load('logins')
-    await _.components.load('supports')
+    try:
+        await _.components.load('databases')
+        await _.components.load('caches')
+        await _.components.load('logins')
+        await _.components.load('supports')
+    except _.error as e:
+        logging.error('%s', e)
+        _.application.stop()
+        return
 
     _.argparser.add_argument('--debug', '-D',
         action='store_true',
