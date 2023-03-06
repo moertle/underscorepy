@@ -22,8 +22,11 @@ logging.getLogger("aiosqlite").setLevel(logging.WARNING)
 
 class SQLite(_.databases.Database):
     async def init(self, path=None, schema=None):
+        aiosqlite.register_adapter(bool, int)
+        aiosqlite.register_converter('BOOLEAN', lambda v: bool(int(v)))
+
         try:
-            self.conn = await aiosqlite.connect(path)
+            self.conn = await aiosqlite.connect(path, detect_types=sqlite3.PARSE_DECLTYPES)
         except sqlite3.OperationalError:
             raise _.error('Unable to open database: %s', path)
 
@@ -49,7 +52,7 @@ class SQLite(_.databases.Database):
         await self.conn.commit()
         await self.conn.close()
 
-    async def execute(self, statement, args):
+    async def execute(self, statement, args=None):
         lastrowid = 0
         cursor = await self.conn.cursor()
         try:
@@ -109,7 +112,7 @@ class SQLite(_.databases.Database):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT INTO {table} ({columns}) VALUES ({placeholder})'
-        lastrowid = await self.execute(statement, list(values.values()))
+        lastrowid = await self.execute(statement, tuple(values.values()))
         if id_column not in values:
             values[id_column] = lastrowid
 
@@ -117,13 +120,13 @@ class SQLite(_.databases.Database):
         where = values.get(column)
         columns = ','.join(f'{s}=?' for s in values.keys())
         statement = f'UPDATE {table} SET {columns} WHERE {column}=?'
-        await self.execute(statement, list(values.values()) + [where])
+        await self.execute(statement, tuple(values.values()) + (where,))
 
     async def upsert(self, table, values):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT OR REPLACE INTO {table} ({columns}) VALUES ({placeholder})'
-        await self.execute(statement, list(values.values()))
+        await self.execute(statement, tuple(values.values()))
 
     async def delete(self, table, value, column='id'):
         statement = f'DELETE FROM {table} WHERE {column}=?'
