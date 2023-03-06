@@ -11,7 +11,7 @@ import _
 
 class EchoMixin:
     def on_message(self, msg):
-        for ws in self.websockets:
+        for ws in self.websockets.values():
             if ws is self:
                 continue
             ws.write_message(msg)

@@ -27,6 +27,3 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         self.websockets.pop(id(self), None)
-
-    def on_message(self, msg):
-        raise NotImplementedError
