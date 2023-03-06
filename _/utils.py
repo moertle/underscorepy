@@ -7,13 +7,16 @@
 #
 
 import asyncio
-import os
 import inspect
+import os
+import time
 
+
+def now():
+    return int(time.time() * 1000)
 
 async def wait(result):
     return result if not asyncio.iscoroutine(result) else await result
-
 
 class Paths(object):
     def __init__(self, root=None, ns=None):
@@ -23,6 +26,8 @@ class Paths(object):
     def __call__(self, *args):
         return os.path.join(self.root, self.ns, *args)
 
+# to pass _.function as a filter to the all function
+function = type(lambda: None)
 
 def all(instance=object, cls=None, prefix='', suffix=''):
     'overkill convenience function for import * from module'
@@ -54,8 +59,5 @@ def all(instance=object, cls=None, prefix='', suffix=''):
 
         __all__.append(name)
     return __all__
-
-# to pass as a filter to the all function
-function = type(lambda: None)
 
 __all__ = all()
