@@ -49,12 +49,12 @@ class Postgres(_.databases.Database):
         await cursor.close()
         return rows
 
-    async def find_one(self, table, _id, id_column='id'):
+    async def find_one(self, table, id_column, _id):
         statement = f'SELECT * FROM {table} WHERE {id_column}=%s'
         cursor = await self.execute(statement, [_id])
         return cursor.fetchone()
 
-    async def insert(self, table, values, id_column='id'):
+    async def insert(self, table, id_column, values):
         columns = ','.join('"%s"' % k.lower() for k in values.keys())
         placeholder = ','.join('%s' for x in xrange(len(values)))
         statement = f'INSERT INTO {table} ({columns}) VALUES ({placeholder})'
@@ -71,7 +71,7 @@ class Postgres(_.databases.Database):
 
         return rows
 
-    async def update(self, table, values, id_column='id'):
+    async def update(self, table, id_column, values):
         _id = values[id_column]
         columns = ','.join('"%s"=%%s' % s.lower() for s in values.keys())
         statement = 'UPDATE {0} SET {1} WHERE {2}=%s'.format(table, columns, id_column)
@@ -84,13 +84,13 @@ class Postgres(_.databases.Database):
 
         return rows
 
-    async def upsert(self, table, values, id_column='id'):
-        rows = await self.InsertUnique(table, values, id_column)
+    async def upsert(self, table, id_column, values):
+        rows = await self.insert_unique(table, values, id_column)
         if rows <= 0:
             rows = await self.update(table, values, id_column)
         return rows
 
-    async def insert_unique(self, table, values, id_column='id'):
+    async def insert_unique(self, table, id_column, values):
         columns = ','.join('"%s"' % k.lower() for k in values.keys())
         placeholder = ','.join('%s' for x in xrange(len(values)))
         statement = f'''INSERT INTO {table} ({columns}) VALUES {placeholder}

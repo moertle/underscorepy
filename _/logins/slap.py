@@ -48,7 +48,7 @@ class Slap(_.logins.Login):
             logging.error('Could not connect to LDAP server: %s', cls.uri)
         return None
 
-    async def post(self):
+    async def post(self, name):
         username = self.get_argument('username', '')
         username = tornado.escape.xhtml_escape(username)
         password = self.get_argument('password', '')

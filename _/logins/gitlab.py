@@ -42,7 +42,7 @@ class GitLab( _.logins.OAuth2, _.logins.Login):
     async def init(cls, name):
         cls.scope = ['read_user']
 
-        cls._OAUTH_AUTHORIZE_URL    = f'{cls.gitlab}/oauth/authorize'
-        cls._OAUTH_ACCESS_TOKEN_URL = f'{cls.gitlab}/oauth/token'
-        cls._OAUTH_USERINFO_URL     = f'{cls.gitlab}/api/v4/user'
-        cls._OAUTH_SETTINGS_KEY     = f'{cls.name}_oauth'
+        cls._OAUTH_AUTHORIZE_URL    = f'{cls._gitlab}/oauth/authorize'
+        cls._OAUTH_ACCESS_TOKEN_URL = f'{cls._gitlab}/oauth/token'
+        cls._OAUTH_USERINFO_URL     = f'{cls._gitlab}/api/v4/user'
+        cls._OAUTH_SETTINGS_KEY     = f'{cls._name}_oauth'

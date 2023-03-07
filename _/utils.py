@@ -8,6 +8,7 @@
 
 import asyncio
 import inspect
+import logging
 import os
 import time
 
@@ -16,7 +17,12 @@ def now():
     return int(time.time() * 1000)
 
 async def wait(result):
-    return result if not asyncio.iscoroutine(result) else await result
+    try:
+        return result if not asyncio.iscoroutine(result) else await result
+    except Exception as e:
+        logging.exception("Unhandled exception")
+
+prefix = lambda kwds: dict((f'_{k}',v) for k,v in kwds.items())
 
 class Paths(object):
     def __init__(self, root=None, ns=None):

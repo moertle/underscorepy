@@ -41,10 +41,10 @@ class SQLite(_.databases.Database):
 
         if os.path.isfile(schema):
             logging.info('Loading schema: %s', schema)
-            schema = open(schema, 'r').read()
-            cursor = await self.conn.cursor()
-            await cursor.executescript(schema)
-            await self.conn.commit()
+            with open(schema, 'r') as fp:
+                cursor = await self.conn.cursor()
+                await cursor.executescript(fp.read())
+                await self.conn.commit()
         else:
             raise _.error('Schema not found: %s', schema)
 
@@ -82,8 +82,8 @@ class SQLite(_.databases.Database):
         await cursor.close()
         return rows
 
-    async def find_one(self, table, value, column='id'):
-        statement = f'SELECT * FROM {table} WHERE {column}=? LIMIT 1'
+    async def find_one(self, table, id_column, value):
+        statement = f'SELECT * FROM {table} WHERE {id_column}=? LIMIT 1'
 
         try:
             cursor = await self.conn.cursor()
@@ -94,7 +94,7 @@ class SQLite(_.databases.Database):
         await cursor.close()
         return dict(row) if row else None
 
-    async def count(self, table):
+    async def count(self, table, where=None):
         statement = f'SELECT count(*) FROM {table}'
 
         try:
@@ -108,7 +108,7 @@ class SQLite(_.databases.Database):
         finally:
             await cursor.close()
 
-    async def insert(self, table, values, id_column='id'):
+    async def insert(self, table, id_column, values):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT INTO {table} ({columns}) VALUES ({placeholder})'
@@ -116,18 +116,18 @@ class SQLite(_.databases.Database):
         if id_column not in values:
             values[id_column] = lastrowid
 
-    async def update(self, table, values, column='id'):
-        where = values.get(column)
+    async def update(self, table, id_column, values):
+        where = values.get(id_column)
         columns = ','.join(f'{s}=?' for s in values.keys())
-        statement = f'UPDATE {table} SET {columns} WHERE {column}=?'
+        statement = f'UPDATE {table} SET {columns} WHERE {id_column}=?'
         await self.execute(statement, tuple(values.values()) + (where,))
 
-    async def upsert(self, table, values):
+    async def upsert(self, table, id_column, values):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT OR REPLACE INTO {table} ({columns}) VALUES ({placeholder})'
         await self.execute(statement, tuple(values.values()))
 
-    async def delete(self, table, value, column='id'):
-        statement = f'DELETE FROM {table} WHERE {column}=?'
+    async def delete(self, table, id_column, value):
+        statement = f'DELETE FROM {table} WHERE {id_column}=?'
         await self.execute(statement, (value,))

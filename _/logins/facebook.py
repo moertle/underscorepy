@@ -19,7 +19,7 @@ class Facebook(_.logins.Login, tornado.auth.FacebookGraphMixin):
     async def init(cls, name):
         cls.extra = {"scope": "read_stream,offline_access"}
 
-    async def get(self):
+    async def get(self, name):
         try:
             code = self.get_argument('code', None)
             if not code:

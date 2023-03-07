@@ -39,7 +39,7 @@ class Application(tornado.web.Application):
 
         name = self.__class__.__name__.lower()
         try:
-            await _.settings.load(self, ns=ns, name=name)
+            await _.settings.load(ns=ns, name=name)
             await self.logging()
         except _.error as e:
             if _.args.debug:
@@ -192,8 +192,7 @@ class Application(tornado.web.Application):
         signame = signal.Signals(signum).name
         handler = getattr(self, f'on_{signame.lower()}', None)
         if handler:
-            stop = handler(signum, frame)
-            if stop:
+            if handler(signum, frame):
                 return
         logging.info('Terminating %s on %s signal', _.name, signame)
         self.loop.call_soon_threadsafe(self.stop)

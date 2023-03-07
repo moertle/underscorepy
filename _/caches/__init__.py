@@ -18,9 +18,9 @@ class Cache:
         except KeyError:
             members = {}
 
-        members['expires']  = int(members.get('expires',  24))
-        members['interval'] = int(members.get('interval', 60))
-        members.update(kwds)
+        members['_expires']  = int(members.get('expires',  24))
+        members['_interval'] = int(members.get('interval', 60))
+        members.update(_.prefix(kwds))
 
         # instantiate the derived class
         _.cache[name] = type(cls.__name__, (cls,), members)()

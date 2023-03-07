@@ -49,9 +49,9 @@ _.config = configparser.SafeConfigParser(
 _.config.optionxform = str
 
 
-async def load(application, **kwds):
+async def load(**kwds):
     # get the path of the caller
-    caller = inspect.getfile(application.__class__)
+    caller = inspect.getfile(_.application.__class__)
 
     # get the directory of the script
     root = kwds.get('root', None)
@@ -140,7 +140,7 @@ async def load(application, **kwds):
         _.args.port = _.config.getint(_.name, 'port', fallback=8080)
 
     # Tornado settings
-    application.settings = dict(
+    _.application.settings = dict(
         static_path   = _.paths('static'),
         template_path = _.paths('templates'),
         debug         = _.args.debug,
@@ -148,7 +148,7 @@ async def load(application, **kwds):
 
     for name,login in _.login.items():
         if issubclass(login, _.logins.OAuth2):
-            application.settings[login._OAUTH_SETTINGS_KEY] = dict(
+            _.application.settings[login._OAUTH_SETTINGS_KEY] = dict(
                 key    = _.config[name]['client_id'],
                 secret = _.config[name]['client_secret'],
                 )

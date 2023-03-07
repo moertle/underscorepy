@@ -24,19 +24,19 @@ class Database:
     async def find(self, table, params=None, sort=None):
         raise NotImplementedError
 
-    async def find_one(self, table, _id, id_column='id'):
+    async def find_one(self, table, id_column, _id):
         raise NotImplementedError
 
-    async def insert(self, table, values, id_column='id'):
+    async def insert(self, table, id_column, values):
         raise NotImplementedError
 
-    async def insert_unique(self, table, values, id_column='id'):
+    async def insert_unique(self, table, id_column, values):
         raise NotImplementedError
 
-    async def upsert(self, table, values, id_column='id'):
+    async def upsert(self, table, id_column, values):
         raise NotImplementedError
 
-    async def update(self, table, values, id_column='id'):
+    async def update(self, table, id_column, values):
         raise NotImplementedError
 
     async def delete(self, table, values, column='id'):

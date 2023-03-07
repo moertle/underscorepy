@@ -9,13 +9,13 @@ import _
 class OAuth2(tornado.auth.GoogleOAuth2Mixin):
     extra = None
 
-    async def get(self):
+    async def get(self, name):
         code = self.get_argument('code', None)
         if not code:
             # make the initial request to the OAuth2 service
             self.authorize_redirect(
                 redirect_uri  = self.redirect_uri,
-                client_id     = self.client_id,
+                client_id     = self._client_id,
                 scope         = self.scope,
                 response_type = 'code',
                 extra_params  = self.extra

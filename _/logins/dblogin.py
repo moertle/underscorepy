@@ -14,14 +14,14 @@ import _
 
 
 class DbLogin(_.logins.Login):
-    table    = 'users'
-    username = 'username'
-    password = 'password'
+    _table    = 'users'
+    _username = 'username'
+    _password = 'password'
 
     @classmethod
     async def init(cls, name):
         try:
-            db = _.database[cls.database]
+            db = _.database[cls._database]
         except AttributeError:
             raise _.error('No database specified for %s', name)
 
@@ -40,8 +40,8 @@ class DbLogin(_.logins.Login):
 
         kwds = dict(_.config[name])
         table = {
-            cls.username: 'TEXT UNIQUE NOT NULL',
-            cls.password: 'TEXT NOT NULL',
+            cls._username: 'TEXT UNIQUE NOT NULL',
+            cls._password: 'TEXT NOT NULL',
 
         }
         table.update(kwds)
@@ -54,7 +54,7 @@ class DbLogin(_.logins.Login):
                 table[key] = 'TEXT NOT NULL'
 
         rows = ', '.join(f'{k} {v}' for k,v in table.items())
-        statement = f'CREATE TABLE IF NOT EXISTS {cls.table}({rows})'
+        statement = f'CREATE TABLE IF NOT EXISTS {cls._table}({rows})'
         try:
             await db.execute(statement)
         except _.error as e:
@@ -63,17 +63,17 @@ class DbLogin(_.logins.Login):
 
         kwds = {
             'name'     : name,
-            'database' : cls.database,
-            'table'    : cls.table,
-            'username' : cls.username,
-            'password' : cls.password,
+            'database' : cls._database,
+            'table'    : cls._table,
+            'username' : cls._username,
+            'password' : cls._password,
         }
         cls.handler = type(f'{name}_handler', (DBLoginRecords,_.handlers.Protected), kwds)
 
     @classmethod
     async def args(cls, name):
         try:
-            db = _.database[cls.database]
+            db = _.database[cls._database]
         except AttributeError:
             raise _.error('No database specified for %s', name)
 
@@ -89,8 +89,8 @@ class DbLogin(_.logins.Login):
             record.pop('database', None)
             record.pop('table',    None)
 
-            record[cls.username] = username
-            record[cls.password] = password
+            record[cls._username] = username
+            record[cls._password] = password
 
             callback = getattr(_.application, f'on_{name}_add_user', None)
             if callback is None:
@@ -98,12 +98,12 @@ class DbLogin(_.logins.Login):
             if callback:
                 await _.wait(callback(name, record))
 
-            await db.upsert(cls.table, record)
+            await db.upsert(cls._table, cls._username, record)
             _.application.stop()
 
         if getattr(_.args, f'{prefix}list_users'):
-            for user in await db.find(cls.table):
-                print(user[cls.username])
+            for user in await db.find(cls._table):
+                print(user[cls._username])
             _.application.stop()
 
     @classmethod
@@ -112,14 +112,14 @@ class DbLogin(_.logins.Login):
             password = _.auth.simple_hash(username + password)
 
         try:
-            db = _.database[cls.database]
+            db = _.database[cls._database]
         except KeyError:
-            raise tornado.web.HTTPError(500, f'database "{cls.database}" not defined in ini file')
+            raise tornado.web.HTTPError(500, f'database "{cls._database}" not defined in ini file')
         except AttributeError:
             raise tornado.web.HTTPError(500, 'database not specified in ini file')
 
         try:
-            record = await db.find_one(cls.table, username, cls.username)
+            record = await db.find_one(cls._table, cls._username, username)
         except _.error as e:
             logging.warning('%s', e)
             record = None
@@ -128,11 +128,11 @@ class DbLogin(_.logins.Login):
             logging.warning('No user: %s', username)
             return None
 
-        if password != record.get(cls.password, '!'):
+        if password != record.get(cls._password, '!'):
             logging.warning('Bad password: %s', username)
             return None
 
-        record.pop(cls.password)
+        record.pop(cls._password)
         return record
 
     async def post(self, name):
@@ -163,7 +163,7 @@ class DBLoginRecords(_.handlers.Protected):
     @tornado.web.authenticated
     async def get(self, username=None):
         if username:
-            record = await self.db.find_one(self.table, username, self.username)
+            record = await self.db.find_one(self.table, self.username, username)
             record.pop(self.password, None)
             self.write(record)
         else:
@@ -183,36 +183,34 @@ class DBLoginRecords(_.handlers.Protected):
         except json.decoder.JSONDecodeError:
             raise tornado.web.HTTPError(500)
 
-        username = user.get(self.username)
-        password = user.get(self.password)
+        username = user.get(self.username, None)
+        password = user.get(self.password, None)
         if not username or not password:
             raise tornado.web.HTTPError(500)
 
-        record = dict(_.config[self.name])
+        record = dict((k,None) for k in _.config[self.name])
         record.pop('database', None)
         record.pop('table',    None)
         record.update(user)
-        record[self.username] = username
-        record[self.password] = password
 
         callback = getattr(_.application, f'on_{self.name}_update', None)
         if callback is None:
             callback = getattr(_.application, 'on_dblogin_update', None)
         if callback:
-            await _.wait(callback(self, self.name, record))
+            await _.wait(callback(self.name, record))
 
         if record[self.password] == password:
             password = _.auth.simple_hash(username + password)
             record[self.password] = password
 
-        await self.db.insert(self.table, record, self.username)
+        await self.db.insert(self.table, self.username, record)
         self.set_status(204)
 
     # DELETE
     @tornado.web.authenticated
     async def delete(self, username=None):
         self.set_status(204)
-        await self.db.delete(self.table, username, self.username)
+        await self.db.delete(self.table, self.username, username)
 
         callback = getattr(_.application, f'on_{self.name}_delete', None)
         if callback is None:
