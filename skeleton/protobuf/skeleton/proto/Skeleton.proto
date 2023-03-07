@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package skeleton.protobuf;
+package skeleton.proto;
 
 import "_/records/protobuf/Records.proto";
 
