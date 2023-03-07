@@ -5,10 +5,12 @@ import "google/protobuf/descriptor.proto";
 package _.records.protobuf;
 
 extend google.protobuf.MessageOptions {
-    bool   table       = 50001;
+    string default_id = 50001;
+    bool   ignore     = 50002;
 }
 
 extend google.protobuf.FieldOptions {
     bool   primary_key = 50001;
     string foreign_key = 50002;
+    bool   unique      = 50003;
 }

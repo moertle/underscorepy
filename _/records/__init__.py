@@ -13,4 +13,8 @@ class Record:
     @classmethod
     async def _(cls, name, **kwds):
         self = cls()
-        await self.init(name, **kwds)
+        _.record[name] = self
+        try:
+            await self.init(name, **kwds)
+        except TypeError as e:
+            raise _.error('%s', e)
