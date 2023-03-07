@@ -22,18 +22,16 @@ from . import Records_pb2
 
 
 class Protobuf(_.records.Record):
-    async def init(self, name, module, primary_key='UUID', database=None):
-        self.primary_key = primary_key
+    async def init(self, name, module, database=None):
+        try:
+            imported = importlib.import_module(module)
+        except ModuleNotFoundError:
+            raise _.error('Unknown module: %s', module)
         if database:
             db = _.database[database]
-            try:
-                imported = importlib.import_module(module)
-            except ModuleNotFoundError:
-                raise _.error('Unknown module: %s', module)
             schema = db.schema(module)
             __generate(schema, imported)
             await _.wait(schema.apply())
-
 
     class Json(json.JSONEncoder):
         def default(self, obj):
@@ -109,10 +107,6 @@ def _Protobuf__generate(schema, imported):
             if options.HasExtension(Records_pb2.default_id):
                 table.default_id(options.Extensions[Records_pb2.default_id])
 
-            # check if the message defines primary keys
-            #if options.HasExtension(Records_pb2.primary_keys):
-            #    table.primary_keys(options.Extensions[Records_pb2.primary_keys])
-
             # iterate over message to determine columns
             for field in message.fields:
                 column = table.column(field.name)
@@ -122,7 +116,6 @@ def _Protobuf__generate(schema, imported):
                 # check if column should be a primary key
                 if options.HasExtension(Records_pb2.primary_key):
                     if options.Extensions[Records_pb2.primary_key]:
-                        table.primary_key(field.name)
                         column.primary_key()
                 # check for foreign key
                 if options.HasExtension(Records_pb2.foreign_key):
