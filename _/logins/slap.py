@@ -22,7 +22,7 @@ except ImportError:
 
 class Slap(_.logins.Login):
     @classmethod
-    async def init(cls, name):
+    async def init(cls, name, **kwds):
         _.argparser.add_argument(f'--{name}-list-users',
             action='store_true',
             help='list users'

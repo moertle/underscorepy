@@ -25,49 +25,41 @@ class DbCache(_.caches.Cache):
     _table      = 'sessions'
     _session_id = 'session_id'
 
-    async def init(self, name, **kwds):
-        self.db = _.database[self._database]
-
+    async def init(self, name, database=None, table=None, **kwds):
         if not hasattr(_.application, 'is_session_expired'):
             raise _.error('Application does not have is_session_expired function defined')
 
-        await self.db.execute(
-            f'''CREATE TABLE IF NOT EXISTS {self._config} (
-                {self._key_col} TEXT UNIQUE NOT NULL,
-                {self._val_col} TEXT
-                )'''
-            )
+        if database is None:
+            if 1 == len(_.database):
+                self._database = list(_.database.keys())[0]
+            else:
+                raise _.error('dbcache requires a database to be specified')
 
-        table = {
-            self._session_id : 'TEXT UNIQUE NOT NULL',
-        }
-        table.update(kwds)
-        table.pop('database', None)
-        table.pop('table',    None)
+        self.db = _.database[self._database]
 
-        for key,value in table.items():
-            if value is None:
-                table[key] = 'TEXT NOT NULL'
+        schema = self.db.schema('config')
+        table = schema.table(self._config)
+        table.column(self._key_col).primary_key()
+        table.column(self._val_col)
+        await schema.apply()
 
-        rows = ', '.join(f'{k} {v}' for k,v in table.items())
-        statement = f'CREATE TABLE IF NOT EXISTS {self._table}({rows})'
-
-        try:
-            await self.db.execute(statement)
-        except _.error as e:
-            logging.error('\n\n%s\n', statement)
-            raise
+        schema = self.db.schema('sessions')
+        table = schema.table(self._table)
+        table.column(self._session_id).primary_key()
+        for col,dbtype in kwds.items():
+            table.column(col).type(dbtype)
+        await schema.apply()
 
         # interval comes from the [sessions] section of the ini
         _.application.periodic(self._interval, self.clear_stale_sessions)
 
-        kwds = dict(
+        members = dict(
             name        = name,
             db          = self.db,
             _table      = self._table,
             _session_id = self._session_id,
             )
-        self.handler = type(f'{name}_handler', (DbCacheSessions,_.handlers.Protected), kwds)
+        self.handler = type(f'{name}_handler', (DbCacheSessions,_.handlers.Protected), members)
 
     async def cookie_secret(self):
         secret = await self.db.find_one(self._config, self._key_col, self._key)

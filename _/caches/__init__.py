@@ -23,8 +23,9 @@ class Cache:
         members.update(_.prefix(kwds))
 
         # instantiate the derived class
-        _.cache[name] = type(cls.__name__, (cls,), members)()
-        await _.cache[name].init(name, **kwds)
+        self = type(cls.__name__, (cls,), members)()
+        _.cache[name] = self
+        await self.init(name, **kwds)
 
     async def init(self, **kwds):
         pass

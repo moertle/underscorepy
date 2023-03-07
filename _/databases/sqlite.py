@@ -9,6 +9,7 @@
 import logging
 import os
 import sqlite3
+import uuid
 
 import _
 
@@ -24,6 +25,9 @@ class SQLite(_.databases.Database):
     async def init(self, path=None, schema=None):
         aiosqlite.register_adapter(bool, int)
         aiosqlite.register_converter('BOOLEAN', lambda v: bool(int(v)))
+
+        aiosqlite.register_adapter(uuid.UUID, str)
+        aiosqlite.register_converter('UUID', lambda v: uuid.UUID(v))
 
         try:
             self.conn = await aiosqlite.connect(path, detect_types=sqlite3.PARSE_DECLTYPES)
