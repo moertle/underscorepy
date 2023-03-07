@@ -10,6 +10,7 @@ import asyncio
 import inspect
 import logging
 import os
+import textwrap
 import time
 
 
@@ -22,7 +23,7 @@ async def wait(result):
     except Exception as e:
         logging.exception("Unhandled exception")
 
-prefix = lambda kwds: dict((f'_{k}',v) for k,v in kwds.items())
+prefix = lambda kwds,prepend='_': dict((f'{prepend}{k}',v) for k,v in kwds.items())
 
 class Paths:
     def __init__(self, root=None, ns=None):
@@ -31,6 +32,8 @@ class Paths:
 
     def __call__(self, *args):
         return os.path.join(self.root, self.ns, *args)
+
+sql = lambda statement: textwrap.dedent(statement.strip())
 
 # to pass _.function as a filter to the all function
 function = type(lambda: None)
