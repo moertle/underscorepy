@@ -110,6 +110,7 @@ async def load(**kwds):
 
     try:
         await _.components.load('databases')
+        await _.components.load('records')
         await _.components.load('caches')
         await _.components.load('logins')
         await _.components.load('supports')

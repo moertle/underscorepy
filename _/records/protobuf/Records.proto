@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+
+package _.records.protobuf;
+
+extend google.protobuf.MessageOptions {
+    bool   table       = 50001;
+}
+
+extend google.protobuf.FieldOptions {
+    bool   primary_key = 50001;
+    string foreign_key = 50002;
+}
