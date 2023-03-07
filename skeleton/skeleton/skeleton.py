@@ -36,7 +36,7 @@ class Skeleton(_.Application):
         logging.info('Periodic: %s', time.ctime())
 
     async def on_dblogin_add_user(self, name, record):
-        'allow apps to make adjustments to the record before calling sql statement'
+        'make adjustments to the record before calling sql statement'
         record['disabled'] = False
         record['isadmin']  = True
         record['created']  = _.now()
@@ -46,9 +46,19 @@ class Skeleton(_.Application):
         print(name)
         print(record)
 
+    async def on_gitlab_login(self, handler, user):
+        session = {
+            'session_id' : str(uuid.uuid4()),
+            'username'   : user['username'],
+            'agent'      : handler.request.headers.get('User-Agent', ''),
+            'ip'         : handler.request.remote_ip,
+            'time'       : _.now(),
+            }
+        return session
+
     async def on_login(self, handler, user):
         user['last'] = int(time.time() * 1000)
-        await self.db.update('users', user, 'username')
+        await self.db.update('users', 'username', user)
 
         session = {
             'session_id' : str(uuid.uuid4()),
