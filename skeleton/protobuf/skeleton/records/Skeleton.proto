@@ -5,8 +5,29 @@ package skeleton.protobuf;
 import "_/records/protobuf/Records.proto";
 
 message Skeleton {
-    option (_.records.protobuf.table) = true;
     string field1  = 1
         [(_.records.protobuf.primary_key) = true];
+    string field2  = 2
+        [(_.records.protobuf.primary_key) = true];
+}
+
+message Message {
+    option (_.records.protobuf.default_id) = 'message_id';
+    string field1  = 1;
     string field2  = 2;
 }
+
+message NoTable {
+    option (_.records.protobuf.ignore) = true;
+    string field1  = 1;
+    string field2  = 2;
+}
+
+message DefaultId {
+     string field1 = 1
+        [(_.records.protobuf.unique) = true];
+     int32  field2 = 2
+        [(_.records.protobuf.unique) = true];
+    repeated int32  field3 = 3;
+}
+

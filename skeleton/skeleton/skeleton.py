@@ -5,12 +5,7 @@ import uuid
 
 import _
 
-from . import handlers
-
-class SkeletonSocket(_.websockets.Protected):
-    def on_message(self, msg):
-        logging.info('websocket: %s', msg)
-        self.write_message(msg)
+import skeleton
 
 
 class Skeleton(_.Application):
@@ -22,9 +17,9 @@ class Skeleton(_.Application):
         self.patterns = [
             ( r'/records/dblogin/(.*)',      _.login['dblogin'].handler ),
             ( r'/records/dbcache/(.*)',      _.cache['dbcache'].handler ),
-            ( r'/records/([a-z]+)/([a-z]*)', handlers.Records ),
+            ( r'/records/([a-z]+)/([a-z]*)', skeleton.handlers.Records ),
 
-            ( r'/ws',       SkeletonSocket, { 'websockets' : self.websockets } ),
+            ( r'/ws',       skeleton.handlers.Socket, { 'websockets' : self.websockets } ),
 
             ( r'/([a-z]*)', _.handlers.Protected ),
             ]

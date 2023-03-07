@@ -12,3 +12,9 @@ class Records(_.handlers.Protected):
         else:
             record = await self.application.db.find_one(record, record_id, 'username')
             self.write(record)
+
+
+class Socket(_.websockets.Protected):
+    def on_message(self, msg):
+        logging.info('websocket: %s', msg)
+        self.write_message(msg)
