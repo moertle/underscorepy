@@ -60,8 +60,6 @@ class Database:
             for table_name,table in self._tables.items():
                 try:
                     statement = table.apply()
-                    print(statement)
-                    print()
                     await self._parent.execute(statement)
                 except _.error as e:
                     raise _.error('%s: %s', self._name, e)
