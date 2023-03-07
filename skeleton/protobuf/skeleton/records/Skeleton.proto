@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package skeleton.protobuf;
+
+import "_/records/protobuf/Records.proto";
+
+message Skeleton {
+    option (_.records.protobuf.table) = true;
+    string field1  = 1
+        [(_.records.protobuf.primary_key) = true];
+    string field2  = 2;
+}
