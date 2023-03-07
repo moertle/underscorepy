@@ -24,7 +24,7 @@ async def wait(result):
 
 prefix = lambda kwds: dict((f'_{k}',v) for k,v in kwds.items())
 
-class Paths(object):
+class Paths:
     def __init__(self, root=None, ns=None):
         self.root = root
         self.ns   = ns
@@ -36,7 +36,7 @@ class Paths(object):
 function = type(lambda: None)
 
 def all(instance=object, cls=None, prefix='', suffix=''):
-    'overkill convenience function for import * from module'
+    'overkill function for import * from module to limit what is imported'
     __all__ = []
     module = inspect.getmodule(inspect.currentframe().f_back)
     root = module.__name__.rsplit('.', 1)[0] + '.'
