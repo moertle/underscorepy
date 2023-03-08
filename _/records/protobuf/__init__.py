@@ -33,18 +33,11 @@ class Protobuf(_.records.Record):
             __generate(schema, imported)
             await _.wait(schema.apply())
 
-    class Json(json.JSONEncoder):
+    class Json(_.records.Json):
         def default(self, obj):
-            if isinstance(obj, bytes):
-                return base64.b64encode(obj).decode('ascii')
-            # protobuf message
             if hasattr(obj, 'DESCRIPTOR'):
                 return Protobuf.dict(obj)
-            if isinstance(obj, datetime.datetime):
-                return str(obj)
-            if isinstance(obj, uuid.UUID):
-                return str(obj)
-            return json.JSONEncoder.default(self, obj)
+            return super(Json, self).default(obj)
 
     @staticmethod
     def dict(message):
