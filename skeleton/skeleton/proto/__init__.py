@@ -1,2 +1,3 @@
 
-from .Skeleton_pb2 import Skeleton,Message
+from . import Skeleton_pb2
+

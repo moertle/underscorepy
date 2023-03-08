@@ -1,4 +1,5 @@
 
+import dataclasses
 import logging
 import time
 import uuid
@@ -13,18 +14,24 @@ class Skeleton(_.Application):
         self.websockets = {}
 
         self.db = _.database['sqlite']
+        self.data = _.record['data']
+
+        audio = _.dataclasses['Audio'](device='cool',frequency=48000,bits=16,samples=2048)
+        json = audio.dump()
+        audio = _.dataclasses['Audio'].load(json)
+
+        s = _.protobufs['Skeleton']()
+        s.field1 = 'matt'
+        s.field2 = 'shaw'
+        json = s.dump()
+        s2 = _.protobufs['Skeleton'].load(json)
 
         self.patterns = [
-            ( r'/records/dblogin/(.*)',      _.login['dblogin'].handler ),
-            ( r'/records/dbcache/(.*)',      _.cache['dbcache'].handler ),
-            ( r'/records/([a-z]+)/([a-z]*)', skeleton.handlers.Records ),
-
             ( r'/ws',       skeleton.handlers.Socket, { 'websockets' : self.websockets } ),
-
             ( r'/([a-z]*)', _.handlers.Protected ),
             ]
 
-        self.status_task  = self.periodic(10, self.status)
+        #self.status_task  = self.periodic(10, self.status)
         #self.status_task.cancel()
 
     async def status(self):
