@@ -46,3 +46,5 @@ class GitLab( _.logins.OAuth2, _.logins.Login):
         cls._OAUTH_ACCESS_TOKEN_URL = f'{gitlab}/oauth/token'
         cls._OAUTH_USERINFO_URL     = f'{gitlab}/api/v4/user'
         cls._OAUTH_SETTINGS_KEY     = f'{name}_oauth'
+
+        await super(GitLab, cls).init(name, **kwds)

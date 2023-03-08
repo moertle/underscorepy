@@ -54,12 +54,13 @@ class DbCache(_.caches.Cache):
         _.application.periodic(self._interval, self.clear_stale_sessions)
 
         members = dict(
-            name        = name,
-            db          = self.db,
-            _table      = self._table,
-            _session_id = self._session_id,
+            name       = name,
+            db         = self.db,
+            table      = self._table,
+            session_id = self._session_id,
             )
-        self.handler = type(f'{name}_handler', (DbCacheSessions,_.handlers.Protected), members)
+        subclass = type(name, (DbCacheSessions,), _.prefix(members))
+        _.application._record_handler('sessions', subclass)
 
     async def cookie_secret(self):
         secret = await self.db.find_one(self._config, self._key_col, self._key)
@@ -97,24 +98,23 @@ class DbCacheSessions(_.handlers.Protected):
     @tornado.web.authenticated
     async def get(self, session_id=None):
         if session_id:
-            record = await self.db.find_one(self._table, self._session_id, session_id)
+            record = await self._db.find_one(self._table, self._session_id, session_id)
             self.write(record)
         else:
-            records = await self.db.find(self._table)
+            records = await self._db.find(self._table)
             data = []
             for record in records:
-                record = dict(record)
-                data.append(record)
+                data.append(dict(record))
             self.write({'data':data})
 
     @tornado.web.authenticated
     async def delete(self, session_id=None):
         self.set_status(204)
         if session_id:
-            await self.db.delete(self._table, self._session_id, session_id)
+            await self._db.delete(self._table, self._session_id, session_id)
 
-            callback = getattr(_.application, f'on_{name}_delete', None)
+            callback = getattr(_.application, f'on_{self._name}_delete', None)
             if callback is None:
                 callback = getattr(_.application, 'on_dbcache_delete', None)
             if callback:
-                await _.wait(callback(name, record))
+                await _.wait(callback(self._name, record))

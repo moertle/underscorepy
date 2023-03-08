@@ -9,7 +9,14 @@ import _
 class OAuth2(tornado.auth.GoogleOAuth2Mixin):
     extra = None
 
-    async def get(self, name):
+    @classmethod
+    async def init(cls, name, client_id, client_secret, **kwds):
+        _.application.settings[cls._OAUTH_SETTINGS_KEY] = {
+            'key'    : client_id,
+            'secret' : client_secret,
+        }
+
+    async def get(self):
         code = self.get_argument('code', None)
         if not code:
             # make the initial request to the OAuth2 service
@@ -27,7 +34,7 @@ class OAuth2(tornado.auth.GoogleOAuth2Mixin):
                 # in GitLabAuthMixin
                 oauth = await self.get_authenticated_user(
                     redirect_uri = self.redirect_uri,
-                    code         = code
+                    code         = code,
                     )
                 user = await self.oauth2_request(
                     self._OAUTH_USERINFO_URL,

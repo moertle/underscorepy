@@ -13,12 +13,14 @@ class Login(tornado.web.RequestHandler):
     async def _(cls, name, **kwds):
         # create a dynamic child class with kwds from the ini file
         # add a reference to the component name accessible by the new type
-        cls = type(cls.__name__, (cls,), _.prefix(kwds))
-        _.login[name] = cls
+        members = _.prefix(kwds)
+        members['_name'] = name
+        cls = type(name, (cls,), members)
         try:
             await cls.init(name, **kwds)
         except TypeError as e:
             raise _.error('%s', e)
+        _.application._login_handler('login', cls)
 
     @classmethod
     async def init(cls, name):

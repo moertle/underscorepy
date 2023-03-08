@@ -139,17 +139,3 @@ async def load(**kwds):
 
     if not _.args.port:
         _.args.port = _.config.getint(_.name, 'port', fallback=8080)
-
-    # Tornado settings
-    _.application.settings = dict(
-        static_path   = _.paths('static'),
-        template_path = _.paths('templates'),
-        debug         = _.args.debug,
-        )
-
-    for name,login in _.login.items():
-        if issubclass(login, _.logins.OAuth2):
-            _.application.settings[login._OAUTH_SETTINGS_KEY] = dict(
-                key    = _.config[name]['client_id'],
-                secret = _.config[name]['client_secret'],
-                )

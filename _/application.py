@@ -31,6 +31,12 @@ class Application(tornado.web.Application):
             logging.error('%s', e)
 
     async def __async_main(self, ns):
+        self._records_patterns = []
+        self._login_patterns   = []
+
+        self.patterns = []
+        self.settings = {}
+
         self.loop = asyncio.get_event_loop()
         self._stop_event = asyncio.Event()
 
@@ -77,10 +83,17 @@ class Application(tornado.web.Application):
         for name,component in _.cache.items():
             await component.close()
 
-    async def __async_init(self, **kwds):
-        self.patterns   = []
-        self.login_urls = []
+    def _login_handler(self, name, cls):
+        self._login_patterns.append(
+            (f'/{name}/{cls.__name__}', cls)
+            )
 
+    def _record_handler(self, name, cls):
+        self._records_patterns.append(
+            (f'/{name}/{cls.__name__}/(.*)', cls)
+            )
+
+    async def __async_init(self, **kwds):
         # check if a sessions cache was specified
         _.sessions = _.config.get(_.name, 'sessions', fallback=None)
         if _.sessions:
@@ -90,7 +103,11 @@ class Application(tornado.web.Application):
             except KeyError:
                 raise _.error('Unknown sessions cache instance: %s', _.sessions)
 
-        # call the child applications entry point
+        self.settings['static_path']   = _.paths('static')
+        self.settings['template_path'] = _.paths('templates')
+        self.settings['debug']         = _.args.debug
+
+        # call the underscore application's entry point
         try:
             await _.wait(self.initialize())
         except NotImplementedError:
@@ -99,29 +116,29 @@ class Application(tornado.web.Application):
         if 'cookie_secret' not in self.settings:
             self.settings['cookie_secret'] = await self.cookie_secret()
 
-        for instance,cls in _.login.items():
-            self.login_urls.append((f'/login/({instance})', cls))
+        patterns = list(self._records_patterns)
 
-        if self.login_urls:
-            self.patterns = self.login_urls + self.patterns
-            self.patterns = [
+        if self._login_patterns:
+            self._login_patterns += [
                 ( r'/login',  _.handlers.LoginPage ),
                 ( r'/logout', _.handlers.Logout    ),
-                ] + self.patterns
+                ]
             self.settings['login_url'] = '/login'
+        patterns += self._login_patterns
+        patterns += self.patterns
 
-        self.patterns.append(
+        patterns.append(
             ( r'/(favicon.ico)', tornado.web.StaticFileHandler, {'path':''}),
             )
 
-        await self.__listen()
+        await self.__listen(patterns)
         await self._stop_event.wait()
         await _.wait(self.on_stop())
 
-    async def __listen(self, **kwds):
+    async def __listen(self, patterns, **kwds):
         # call the Tornado Application init here to give children a chance
         # to initialize patterns and settings
-        super(Application, self).__init__(self.patterns, **self.settings)
+        super(Application, self).__init__(patterns, **self.settings)
 
         if 'xheaders' not in kwds:
             kwds['xheaders'] = True

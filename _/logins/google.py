@@ -11,6 +11,8 @@ import _
 
 class Google( _.logins.OAuth2, _.logins.Login):
     @classmethod
-    async def init(cls, *args, **kwargs):
+    async def init(cls, name, **kwds):
         cls.scope = ['email']
         cls.extra = {'approval_prompt': 'auto'}
+
+        await super(Google, cls).init(name, **kwds)

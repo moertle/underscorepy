@@ -31,10 +31,11 @@ class Redis(_.caches.Cache):
         self.connection = redis.Redis(**kwds)
         await self.connection.ping()
 
-        kwds = {
-            'name' : name,
-        }
-        self.handler = type(f'{name}_handler', (RedisSessions,_.handlers.Protected), kwds)
+        members = dict(
+            name = name,
+            )
+        subclass = type(name, (RedisSessions,), _.prefix(members))
+        _.application._record_handler('sessions', subclass)
 
     async def close(self):
         await self.connection.close()
@@ -88,8 +89,8 @@ class RedisSessions(_.handlers.Protected):
         self.set_status(204)
         if session_id:
             await self.redis.delete(f'session/{session_id}')
-            callback = getattr(_.application, f'on_{name}_delete', None)
+            callback = getattr(_.application, f'on_{self._name}_delete', None)
             if callback is None:
                 callback = getattr(_.application, 'on_redis_delete', None)
             if callback:
-                await _.wait(callback(name, session_id))
+                await _.wait(callback(self._name, session_id))

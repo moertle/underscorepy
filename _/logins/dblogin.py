@@ -59,7 +59,8 @@ class DbLogin(_.logins.Login):
             'username' : cls._username,
             'password' : cls._password,
         }
-        cls.handler = type(f'{name}_handler', (DBLoginRecords,_.handlers.Protected), _.prefix(members))
+        subclass = type(f'{name}', (DBLoginRecords,), _.prefix(members))
+        _.application._record_handler('logins', subclass)
 
     @classmethod
     async def args(cls, name):
@@ -126,7 +127,7 @@ class DbLogin(_.logins.Login):
         record.pop(cls._password)
         return record
 
-    async def post(self, name):
+    async def post(self):
         username = self.get_argument('username', None)
         password = self.get_argument('password', None)
 
