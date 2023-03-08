@@ -11,7 +11,10 @@ def ignore(cls):
     setattr(cls, f'_handler', None)
     return cls
 
-primary_key = functools.partial(dataclasses.field, metadata='primary_key')
+primary_key = functools.partial(dataclasses.field, metadata={'primary_key':True})
+
+def references(foreign):
+    return dataclasses.field(metadata={'references':foreign})
 
 class DataClass(_.records.Protocol):
     def _load(self, module, package):
@@ -31,16 +34,16 @@ class DataClass(_.records.Protocol):
                 # ignore classes outside of module root
                 continue
 
-            if not hasattr(attr, '__dataclass_fields__'):
-                # make class a dataclass if it isn't already
-                attr = dataclasses.dataclass(attr)
-                setattr(module, name, attr)
-
-            self._dataclass(name, attr)
+            attr = self._dataclass(name, attr)
+            setattr(module, name, attr)
 
     def _dataclass(self, name, dataclass):
         if hasattr(dataclass, '_handler'):
-            return
+            return dataclass
+
+        if not hasattr(dataclass, '__dataclass_fields__'):
+            # make class a dataclass if it isn't already
+            dataclass = dataclasses.dataclass(dataclass)
 
         members = dict(
             _db    = self.db,
@@ -51,16 +54,21 @@ class DataClass(_.records.Protocol):
         for field in dataclasses.fields(dataclass):
             column = table.column(field.name)
             column.type(_column_mapping.get(field.type))
-            if field.metadata == 'primary_key':
+            if field.metadata.get('primary_key', False):
                 column.primary_key()
                 members['_primary_key'] = field.name
+
+            reference = field.metadata.get('references', None)
+            if reference:
+                print(reference)
+                column.references(reference.__name__)
 
         record   = type(name, (dataclass,Record), members)
         subclass = type(name, (_.records.Handler,), {'_record':record})
         _.dataclasses[name] = record
         _.application._record_handler(self.name, subclass)
         setattr(dataclass, '_handler', subclass)
-
+        return dataclass
 
 class Record(_.records.Record):
     class Json(_.records.Record.Json):

@@ -117,11 +117,12 @@ class Database:
 
     class Column:
         def __init__(self, table, name):
-            self._table    = table
-            self._name     = name
-            self._type     = 'TEXT'
-            self._repeated = False
-            self._null     = True
+            self._table     = table
+            self._name      = name
+            self._type      = 'TEXT'
+            self._repeated  = False
+            self._null      = True
+            self._reference = None
 
         def type(self, column_type=None):
             self._type = column_type if column_type is not None else 'TEXT'
@@ -130,6 +131,10 @@ class Database:
         def primary_key(self):
             self._table.primary_key(self._name)
             return self
+
+        def references(self, reference):
+            self._null = True
+            self._reference = reference
 
         def repeated(self, repeatable=True):
             self._repeated = repeatable
@@ -140,5 +145,9 @@ class Database:
             return self
 
         def apply(self):
-            not_null = 'NOT ' if not self._null else ''
-            return f'"{self._name}" {self._type.upper()} {not_null}NULL'
+            not_null = ' NOT NULL' if not self._null else ''
+            if self._reference:
+                reference = f' REFERENCES {self._reference}("{self._name}") ON DELETE CASCADE'
+            else:
+                reference = ''
+            return f'"{self._name}" {self._type.upper()}{not_null}{reference}'

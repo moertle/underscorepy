@@ -67,8 +67,42 @@ class Handler(_.handlers.Protected):
     @tornado.web.authenticated
     async def get(self, record, record_id=None):
         if not record_id:
-            records = await self._record._db.find(self._record._table)
+            records = await self._record._db.find(record)
             self.write(dict(data=[dict(r) for r in records]))
         else:
-            record = await self._record._db.find_one(self._record._table, self._record._primary_key, record_id)
+            record = await self._record._db.find_one(record, self._record._primary_key, record_id)
             self.write(record)
+
+    @tornado.web.authenticated
+    async def put(self, record, record_id=None):
+        try:
+            data = json.loads(self.request.body)
+        except json.decoder.JSONDecodeError:
+            raise tornado.web.HTTPError(500)
+
+        await _.wait(self._record.put(record_id, data, self.request))
+        self.set_status(204)
+
+    @tornado.web.authenticated
+    async def delete(self, record, record_id=None):
+        if not record_id:
+            raise tornado.web.HTTPError(500)
+
+        peer = await webwg.db.find_one('peers', 'peer', record_id)
+        if not peer:
+            raise tornado.web.HTTPError(404)
+
+        server = await webwg.db.find_one('servers', 'instance', peer['instance'])
+        if not server:
+            raise tornado.web.HTTPError(404)
+
+        await webwg.db.delete('peers', 'peer', _peer)
+        self.application.broadcast(dict(action='delete', collection='peers', id=_peer))
+
+        serverConfig = webwg.wg.configs[server['interface']]
+        try:
+            serverConfig.removePeer(peer)
+        except KeyError:
+            raise tornado.web.HTTPError(404)
+
+        self.set_status(204)

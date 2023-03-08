@@ -144,7 +144,7 @@ class DbLogin(_.logins.Login):
 class DBLoginRecords(_.handlers.Protected):
     # READ
     @tornado.web.authenticated
-    async def get(self, username=None):
+    async def get(self, name, username=None):
         if username:
             record = await self._db.find_one(self._table, self._username, username)
             record.pop(self._password, None)
@@ -160,7 +160,7 @@ class DBLoginRecords(_.handlers.Protected):
 
     # UPDATE
     @tornado.web.authenticated
-    async def put(self, username=None):
+    async def put(self, name, username=None):
         try:
             user = json.loads(self.request.body)
         except json.decoder.JSONDecodeError:
@@ -191,7 +191,7 @@ class DBLoginRecords(_.handlers.Protected):
 
     # DELETE
     @tornado.web.authenticated
-    async def delete(self, username=None):
+    async def delete(self, name, username=None):
         self.set_status(204)
         await self._db.delete(self._table, self._username, username)
 
