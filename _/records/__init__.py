@@ -88,21 +88,12 @@ class Handler(_.handlers.Protected):
         if not record_id:
             raise tornado.web.HTTPError(500)
 
-        peer = await webwg.db.find_one('peers', 'peer', record_id)
-        if not peer:
+        data = await self._record._db.find_one(record, self._record._primary_key, record_id)
+        if not data:
             raise tornado.web.HTTPError(404)
 
-        server = await webwg.db.find_one('servers', 'instance', peer['instance'])
-        if not server:
-            raise tornado.web.HTTPError(404)
+        await self._record._db.delete(record, self._record._primary_key, record_id)
 
-        await webwg.db.delete('peers', 'peer', _peer)
-        self.application.broadcast(dict(action='delete', collection='peers', id=_peer))
-
-        serverConfig = webwg.wg.configs[server['interface']]
-        try:
-            serverConfig.removePeer(peer)
-        except KeyError:
-            raise tornado.web.HTTPError(404)
+        await _.wait(self._record.delete(record_id, data, self.request))
 
         self.set_status(204)
