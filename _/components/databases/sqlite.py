@@ -21,7 +21,7 @@ except ImportError:
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
 
 
-class SQLite(_.databases.Database):
+class SQLite(_.interfaces.Database):
     async def init(self, path=None, schema=None):
         aiosqlite.register_adapter(bool, int)
         aiosqlite.register_converter('BOOLEAN', lambda v: bool(int(v)))

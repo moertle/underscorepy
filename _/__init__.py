@@ -26,7 +26,6 @@ from . import version
 from . import settings
 from . import auth
 from . import components
-from . import handlers
 from . import websockets
 
 from .application import Application

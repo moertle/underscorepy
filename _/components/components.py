@@ -14,13 +14,6 @@ import tornado.web
 import _
 
 
-# component instance containers
-_.cache    = {}
-_.database = {}
-_.record   = {}
-_.login    = {}
-_.support  = {}
-
 async def load(component_type):
     # skip components not specified in the config
     if component_type not in _.config:
@@ -41,7 +34,7 @@ async def load(component_type):
             import_path = component[1:]
         else:
             attr = None
-            import_path = f'_.{component_type}.{component}'
+            import_path = f'_.components.{component_type}.{component}'
 
         try:
             module = importlib.import_module(import_path)

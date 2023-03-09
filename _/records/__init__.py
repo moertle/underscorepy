@@ -13,7 +13,7 @@ import uuid
 import tornado.web
 
 import _
-
+from _.handlers.protected import Protected
 
 class Protocol:
     @classmethod
@@ -63,7 +63,7 @@ class Record:
         return json.dumps(self, cls=self.Json, separators=(',',':'), **kwds)
 
 
-class Handler(_.handlers.Protected):
+class Handler(Protected):
     @tornado.web.authenticated
     async def get(self, record, record_id=None):
         if not record_id:

@@ -1,0 +1,40 @@
+
+import _
+
+
+class Database:
+    @classmethod
+    async def _(cls, name, **kwds):
+        self = cls()
+        _.database[name] = self
+        await self.init(**kwds)
+
+    async def init(self, **kwds):
+        pass
+
+    async def close(self):
+        pass
+
+    async def find(self, table, params=None, sort=None):
+        raise NotImplementedError
+
+    async def find_one(self, table, id_column, _id):
+        raise NotImplementedError
+
+    async def insert(self, table, id_column, values):
+        raise NotImplementedError
+
+    async def insert_unique(self, table, id_column, values):
+        raise NotImplementedError
+
+    async def upsert(self, table, id_column, values):
+        raise NotImplementedError
+
+    async def update(self, table, id_column, values):
+        raise NotImplementedError
+
+    async def delete(self, table, values, column='id'):
+        raise NotImplementedError
+
+    def schema(self, name):
+        return Database.Schema(self, name)
