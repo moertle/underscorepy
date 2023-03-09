@@ -9,12 +9,6 @@
 # This is for logging into GitLab servers and serve as an example
 # of implementing an OAuth2 handler for any service that supports it
 
-import tornado.auth
-import tornado.httpclient
-import tornado.web
-
-import _
-
 # For admins go to http(s)://your.gitlab.server/admin/applications and click "New application"
 # For users  go to http(s)://your.gitlab.server/-/profile/applications
 # For groups go to http(s)://your.gitlab.server/groups/(group)/-/settings/applications
@@ -37,7 +31,16 @@ import _
 # Your underscore app can now authenticate via your GitLab server
 
 
-class GitLab( _.logins.OAuth2, _.logins.Login):
+import tornado.auth
+import tornado.httpclient
+import tornado.web
+
+import _
+
+from .oauth2 import OAuth2
+
+
+class GitLab(OAuth2, _.logins.Login):
     @classmethod
     async def init(cls, name, gitlab, **kwds):
         cls.scope = ['read_user']

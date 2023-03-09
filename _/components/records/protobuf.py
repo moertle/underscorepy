@@ -6,13 +6,8 @@
 # Matthew Shaw <mshaw.cx@gmail.com>
 #
 
-import base64
-import datetime
-import importlib
-import json
 import logging
 import os
-import uuid
 
 import google.protobuf.message
 import google.protobuf.json_format

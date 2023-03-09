@@ -1,6 +1,5 @@
 
 import dataclasses
-import datetime
 import functools
 import json
 
@@ -23,7 +22,7 @@ def unique(*args):
     return wrap
 
 
-class DataClass(_.records.Protocol):
+class Data(_.records.Protocol):
     def _load(self, module, package):
         _.dataclasses = {}
 
@@ -33,12 +32,12 @@ class DataClass(_.records.Protocol):
 
             attr = getattr(module, name)
 
-            if not isinstance(attr, type(DataClass)):
-                # ignore objects that are not classes
+            # ignore objects that are not classes
+            if not isinstance(attr, type(Data)):
                 continue
 
+            # ignore classes outside of module root
             if not attr.__module__.startswith(package):
-                # ignore classes outside of module root
                 continue
 
             attr = self._dataclass(name, attr)
@@ -48,8 +47,8 @@ class DataClass(_.records.Protocol):
         if hasattr(dataclass, '_handler'):
             return dataclass
 
+        # make class a dataclass if it isn't already
         if not hasattr(dataclass, '__dataclass_fields__'):
-            # make class a dataclass if it isn't already
             dataclass = dataclasses.dataclass(dataclass)
 
         if hasattr(dataclass, '__unique__'):

@@ -10,7 +10,7 @@ import tornado.web
 
 import _
 
-from _.websockets import WebSocket
+from . import WebSocket
 
 
 class Protected(WebSocket):

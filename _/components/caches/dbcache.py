@@ -16,7 +16,7 @@ import tornado.web
 import _
 
 
-class DbCache(_.caches.Cache):
+class DbCache(_.interfaces.Cache):
     _config  = 'config'
     _key_col = 'key'
     _key     = 'cookie'

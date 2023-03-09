@@ -12,7 +12,7 @@ import json
 import _
 
 
-class Memory(_.caches.Cache):
+class Memory(_.interfaces.Cache):
     async def init(self, name, **kwds):
         if not hasattr(_.application, 'is_session_expired'):
             raise _.error('Application does not have is_session_expired function defined')

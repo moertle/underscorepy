@@ -2,10 +2,10 @@
 import _
 
 # component instance containers
-_.cache    = {}
-_.database = {}
-_.record   = {}
-_.login    = {}
-_.support  = {}
+_.caches    = {}
+_.databases = {}
+_.records   = {}
+_.logins    = {}
+_.supports  = {}
 
 from .components import load
