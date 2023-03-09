@@ -126,7 +126,7 @@ class SQLite(_.databases.Database):
         statement = f'UPDATE {table} SET {columns} WHERE {id_column}=?'
         await self.execute(statement, tuple(values.values()) + (where,))
 
-    async def upsert(self, table, id_column, values):
+    async def upsert(self, table, values):
         columns = ','.join(f'"{s}"' for s in values.keys())
         placeholder = ','.join('?' * len(values))
         statement = f'INSERT OR REPLACE INTO {table} ({columns}) VALUES ({placeholder})'
