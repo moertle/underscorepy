@@ -13,8 +13,15 @@ def ignore(cls):
 
 primary_key = functools.partial(dataclasses.field, metadata={'primary_key':True})
 
-def references(foreign):
-    return dataclasses.field(metadata={'references':foreign})
+def references(foreign, key=None):
+    return dataclasses.field(metadata={'references':foreign,'key':key})
+
+def unique(*args):
+    def wrap(cls):
+        cls.__unique__ = args
+        return cls
+    return wrap
+
 
 class DataClass(_.records.Protocol):
     def _load(self, module, package):
@@ -45,6 +52,10 @@ class DataClass(_.records.Protocol):
             # make class a dataclass if it isn't already
             dataclass = dataclasses.dataclass(dataclass)
 
+        if hasattr(dataclass, '__unique__'):
+            print(dataclass.__unique__)
+
+
         members = dict(
             _db    = self.db,
             _table = name,
@@ -60,8 +71,9 @@ class DataClass(_.records.Protocol):
 
             reference = field.metadata.get('references', None)
             if reference:
-                print(reference)
-                column.references(reference.__name__)
+                key = field.metadata.get('key', None)
+                print(reference, key)
+                column.references(reference.__name__, key)
 
         record   = type(name, (dataclass,Record), members)
         subclass = type(name, (_.records.Handler,), {'_record':record})

@@ -11,6 +11,7 @@ extend google.protobuf.MessageOptions {
 
 extend google.protobuf.FieldOptions {
     bool   primary_key = 50001;
-    string foreign_key = 50002;
-    bool   unique      = 50003;
+    bool   unique      = 50002;
+    string references  = 50003;
+    string paired      = 50004;
 }

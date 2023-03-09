@@ -132,9 +132,9 @@ class Database:
             self._table.primary_key(self._name)
             return self
 
-        def references(self, reference):
+        def references(self, reference, key):
             self._null = True
-            self._reference = reference
+            self._reference = (reference,key)
 
         def repeated(self, repeatable=True):
             self._repeated = repeatable
@@ -147,7 +147,9 @@ class Database:
         def apply(self):
             not_null = ' NOT NULL' if not self._null else ''
             if self._reference:
-                reference = f' REFERENCES {self._reference}("{self._name}") ON DELETE CASCADE'
+                table = self._reference[0]
+                key   = self._reference[1] or self.__name
+                reference = f' REFERENCES {table}("{key}") ON DELETE CASCADE'
             else:
                 reference = ''
             return f'"{self._name}" {self._type.upper()}{not_null}{reference}'
