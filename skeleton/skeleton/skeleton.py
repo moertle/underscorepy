@@ -8,6 +8,10 @@ import _
 
 import skeleton
 
+# this will change the default authentication behavior
+# for all the handlers associated with the loaded components
+# must be set before _.settings.load is called
+_.auth.protected = _.auth.filter_user(lambda current_user: current_users['isadmin'])
 
 class Skeleton(_.Application):
     async def initialize(self):
@@ -28,6 +32,7 @@ class Skeleton(_.Application):
         s.field1 = 'matt'
         s.field2 = 'shaw'
         json = s.dump()
+        print(json)
         s2 = _.protobuf['Skeleton'].load(json)
 
         self.patterns = [

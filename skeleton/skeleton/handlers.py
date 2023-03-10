@@ -1,6 +1,5 @@
 
 import _.websockets
-import tornado.web
 
 
 class Socket(_.websockets.Protected):
