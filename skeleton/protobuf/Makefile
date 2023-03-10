@@ -1,6 +1,5 @@
 PROTOC     = protoc
-PROTOFLAGS = -I.  -I $(shell python3 -m _.records.protobuf)
-
+PROTOFLAGS = -I.  -I $(shell PYTHONPATH=../.. python3 -m _.records.protobuf)
 PYTHON_DIR = ..
 
 PROTO_FILES := $(wildcard skeleton/proto/*.proto)
