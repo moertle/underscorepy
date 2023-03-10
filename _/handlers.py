@@ -35,6 +35,6 @@ class Protected(Template):
     def get_current_user(self):
         return self.session
 
-    @tornado.web.authenticated
+    @_.auth.current_user
     def get(self, template=None):
         super(Protected, self).get(template)
