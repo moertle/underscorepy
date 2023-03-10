@@ -22,12 +22,19 @@ class Record(_.records.Record):
     def dict(cls, data):
         return dataclasses.asdict(data)
 
+    def _asdict(self):
+        return dataclasses.asdict(self)
+
     @classmethod
     def load(cls, msg):
         return cls(**json.loads(msg))
 
 
 class Container(collections.UserDict):
+    @staticmethod
+    def dump(obj):
+        return Record.dump(obj)
+
     @staticmethod
     def no_db(cls):
         setattr(cls, f'_{cls.__name__}__no_db', True)
@@ -61,6 +68,8 @@ class Container(collections.UserDict):
     def ref(foreign, key=None):
         return dataclasses.field(metadata={'ref':foreign,'key':key})
 
+    def __getattr__(self, name):
+        return self.get(name)
 
 class Data(_.records.Protocol):
     async def init(self, module, database=None):
@@ -134,20 +143,20 @@ _column_mapping = {
 
 
 class Handler(_.records.Handler):
-    async def get(self, record, record_id=None):
-        try:
-            await self._record.get(self, record, record_id=record_id)
-        except AttributeError:
-            await super(Handler, self).get(record, record_id)
+    def get(self, record, record_id):
+        if hasattr(self._record, 'get'):
+            return self._record.get(self, record, record_id=record_id)
+        else:
+            return super(Handler, self).get(record, record_id)
 
-    async def put(self, record, record_id=None):
-        try:
-            await self._record.put(self, record, record_id=record_id)
-        except AttributeError:
-            await super(Handler, self).put(record, record_id)
+    def put(self, record, record_id):
+        if hasattr(self._record, 'get'):
+            return self._record.put(self, record, record_id=record_id)
+        else:
+            return super(Handler, self).put(record, record_id)
 
-    async def delete(self, record, record_id=None):
-        try:
-            await self._record.delete(self, record, record_id=record_id)
-        except AttributeError:
-            await super(Handler, self).delete(record, record_id)
+    def delete(self, record, record_id):
+        if hasattr(self._record, 'get'):
+            return self._record.delete(self, record, record_id=record_id)
+        else:
+            return super(Handler, self).delete(record, record_id)

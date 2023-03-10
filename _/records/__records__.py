@@ -70,7 +70,7 @@ class Handler(_.handlers.Protected):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
 
     @_.auth.current_user
-    async def get(self, record, record_id=None):
+    async def get(self, record, record_id):
         if not record_id:
             records = await self._db.find(record)
             self.write(dict(data=[dict(r) for r in records]))
@@ -79,7 +79,7 @@ class Handler(_.handlers.Protected):
             self.write(record)
 
     @_.auth.current_user
-    async def put(self, record, record_id=None):
+    async def put(self, record, record_id):
         try:
             data = json.loads(self.request.body)
         except json.decoder.JSONDecodeError:
@@ -89,7 +89,7 @@ class Handler(_.handlers.Protected):
         self.set_status(204)
 
     @_.auth.current_user
-    async def delete(self, record, record_id=None):
+    async def delete(self, record, record_id):
         if not record_id:
             raise _.HTTPError(500)
 
