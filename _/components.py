@@ -8,6 +8,7 @@
 
 import importlib
 import logging
+import sys
 
 import tornado.web
 
@@ -31,8 +32,20 @@ class Component(type(_)):
     def __setitem__(self, name, value):
         self._components[name] = value
 
+    def keys(self):
+        return self._components.keys()
+
+    def values(self):
+        return self._components.values()
+
     def items(self):
         return self._components.items()
+
+    def __str__(self):
+        return str(self._components)
+
+    def __len__(self):
+        return len(self._components)
 
 
 async def load(component_type):
