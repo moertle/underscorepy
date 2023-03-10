@@ -17,66 +17,6 @@ import _
 from . import Protobuf_pb2
 
 
-class Protobuf(_.records.Protocol):
-    def _load(self, module, package):
-        _.protobufs = {}
-
-        # iterate over all the members of the protobuf modules
-        for member in dir(module):
-            # all proto messages end with _pb2
-            if not member.endswith('_pb2'):
-                continue
-            # get a handle to the pb2 module descriptor
-            pb2 = getattr(module, member)
-
-            # iterate over all the message definitions
-            for name,descriptor in pb2.DESCRIPTOR.message_types_by_name.items():
-                message = getattr(pb2, name)
-                self._message(name, message)
-
-    def _message(self, name, message):
-        options = message.DESCRIPTOR.GetOptions()
-
-        # ignore messages explicitly defined as not a table
-        if options.HasExtension(Protobuf_pb2.ignore):
-            if options.Extensions[Protobuf_pb2.ignore]:
-                return
-
-        members = dict(
-            _message = message,
-            _db      = self.db,
-            _table   = name,
-            )
-
-        table = self.schema.table(name)
-        if options.HasExtension(Protobuf_pb2.default_id):
-            table.default_id(options.Extensions[Protobuf_pb2.default_id])
-
-        # iterate over message to determine columns
-        for field in message.DESCRIPTOR.fields:
-            column = table.column(field.name)
-            column.type(_column_mapping[field.type])
-
-            options = field.GetOptions()
-            # check if column should be a primary key
-            if options.HasExtension(Protobuf_pb2.primary_key):
-                if options.Extensions[Protobuf_pb2.primary_key]:
-                    column.primary_key()
-                    members['_primary_key'] = field.name
-            # check for foreign key
-            if options.HasExtension(Protobuf_pb2.references):
-                table.foreign_key(options.Extensions[Protobuf_pb2.references])
-            if field.label is field.LABEL_REPEATED:
-                column.repeated()
-
-        # Protobuf does not want you to subclass the Message
-        # so we dynamically create a thin wrapper
-        record   = type(name, (Record,), members)
-        subclass = type(name, (_.records.Handler,), {'_record':record})
-        _.protobufs[name] = record
-        _.application._record_handler(self.name, subclass)
-
-
 class Record(_.records.Record):
     def __init__(self, _msg=None):
         self.__dict__['_msg'] = _msg if _msg else self._message()
@@ -110,11 +50,66 @@ class Record(_.records.Record):
     def __str__(self):
         return self._msg.__str__()
 
-    def __repr__(self):
-        return self._msg.__repr__()
 
-    def __unicode__(self):
-        return self._msg.__unicode__()
+class Protobuf(_.records.Protocol):
+    def _load(self, module, package):
+        _.protobuf = {}
+
+        # iterate over all the members of the protobuf modules
+        for member in dir(module):
+            # all proto messages end with _pb2
+            if not member.endswith('_pb2'):
+                continue
+            # get a handle to the pb2 module descriptor
+            pb2 = getattr(module, member)
+
+            # iterate over all the message definitions
+            for name,descriptor in pb2.DESCRIPTOR.message_types_by_name.items():
+                message = getattr(pb2, name)
+                self._message(name, message)
+
+    def _message(self, name, message):
+        options = message.DESCRIPTOR.GetOptions()
+
+        # ignore messages explicitly defined as not a table
+        if options.HasExtension(Protobuf_pb2.ignore):
+            if options.Extensions[Protobuf_pb2.ignore]:
+                return
+
+        members = dict(
+            message = message,
+            db      = self.db,
+            table   = name,
+            )
+
+        table = self.schema.table(name)
+        if options.HasExtension(Protobuf_pb2.default_id):
+            table.default_id(options.Extensions[Protobuf_pb2.default_id])
+
+        # iterate over message to determine columns
+        for field in message.DESCRIPTOR.fields:
+            column = table.column(field.name)
+            column.type(_column_mapping[field.type])
+
+            options = field.GetOptions()
+            # check if column should be a primary key
+            if options.HasExtension(Protobuf_pb2.primary_key):
+                if options.Extensions[Protobuf_pb2.primary_key]:
+                    column.primary_key()
+                    members['primary_key'] = field.name
+            # check for foreign key
+            if options.HasExtension(Protobuf_pb2.references):
+                table.foreign_key(options.Extensions[Protobuf_pb2.references])
+            if field.label is field.LABEL_REPEATED:
+                column.repeated()
+
+        # Protobuf does not want you to subclass the Message
+        # so we dynamically create a thin wrapper
+        record  = type(name, (Record,), _.prefix(members))
+        members['record'] = record
+        handler = type(name, (_.records.Handler,), _.prefix(members))
+        _.protobuf[name] = record
+        _.application._record_handler(self.name, handler)
 
 
 _column_mapping = [

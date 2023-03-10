@@ -14,17 +14,21 @@ class Skeleton(_.Application):
         self.websockets = {}
 
         self.db = _.databases['sqlite']
-        #self.data = _.records['data']
+        self.data = _.records['data']
 
-        #audio = _.data['Audio'](device='cool',frequency=48000,bits=16,samples=2048)
-        #json = audio.dump()
-        #audio = _.data['Audio'].load(json)
+        audio = _.data['audio'](
+            device='cool',
+            samples=2048,
+            )
+        json = audio.dump()
+        print(json)
+        audio = _.data['audio'].load(json)
 
-        s = _.protobufs['Skeleton']()
+        s = _.protobuf['Skeleton']()
         s.field1 = 'matt'
         s.field2 = 'shaw'
         json = s.dump()
-        s2 = _.protobufs['Skeleton'].load(json)
+        s2 = _.protobuf['Skeleton'].load(json)
 
         self.patterns = [
             ( r'/ws',       skeleton.handlers.Socket, { 'websockets' : self.websockets } ),

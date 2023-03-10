@@ -66,7 +66,6 @@ class Schema:
             except _.error as e:
                 raise _.error('%s: %s', self._name, e)
 
-
 class Table:
     def __init__(self, name):
         self._name         = name
@@ -77,7 +76,8 @@ class Table:
         self._unique       = {}
 
     def column(self, column_name):
-        self._columns[column_name] = Column(self, column_name)
+        if column_name not in self._columns:
+            self._columns[column_name] = Column(self, column_name)
         return self._columns[column_name]
 
     def default_id(self, default_id):
@@ -85,7 +85,10 @@ class Table:
         return self
 
     def primary_key(self, key):
-        self._primary_keys[key] = True
+        if key is None:
+            self._primary_keys = None
+        else:
+            self._primary_keys[key] = True
         return self
 
     def foreign_key(self, key):
@@ -100,24 +103,28 @@ class Table:
     def apply(self):
         table = self._name.lower()
 
-        if not self._primary_keys:
-            if self.default_id not in self._columns:
-                column = self.column(self._default_id)
-            self._primary_keys[self._default_id] = True
+        if self._primary_keys is not None:
+            if not self._primary_keys:
+                if self.default_id not in self._columns:
+                    column = self.column(self._default_id)
+                self._primary_keys[self._default_id] = True
 
-        for key in self._primary_keys:
-            try:
-                self._columns[key].null(False)
-            except KeyError:
-                raise _.error('primary key for non-existent field: %s.%s', self._name, key)
+            for key in self._primary_keys:
+                try:
+                    self._columns[key].null(False)
+                except KeyError:
+                    raise _.error('primary key for non-existent field: %s.%s', self._name, key)
 
         spec = [c.apply() for c in self._columns.values()]
-        primary_keys = '","'.join(self._primary_keys.keys())
-        if primary_keys:
+
+        if self._primary_keys: # may be None
+            primary_keys = '","'.join(self._primary_keys.keys())
             spec.append(f'PRIMARY KEY ("{primary_keys}")')
+        unique = '","'.join(k for k,v in self._unique.items() if v)
+        if unique:
+            spec.append(f'UNIQUE ("{unique}")')
         spec = ',\n  '.join(spec)
         return f'CREATE TABLE IF NOT EXISTS {self._name.lower()} (\n  {spec}\n  )'
-
 
 class Column:
     def __init__(self, table, name):

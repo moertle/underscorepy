@@ -72,8 +72,8 @@ from . import components
 from .application import Application
 
 # placeholder for comonents
-caches   = {}
-database = {}
-logins   = {}
-records  = {}
-supports = {}
+caches    = {}
+databases = {}
+logins    = {}
+records   = {}
+supports  = {}

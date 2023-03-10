@@ -1,13 +1,17 @@
 
 import _
 
-class Audio:
-    device:    str = _.records.data.primary_key()
-    frequency: int
-    bits:      int
-    samples:   int
+class audio:
+    device    : str = _.data.uniq(_.data.pkey())
+    frequency : int = 48000
+    bits      : int = 16
+    samples   : int = _.data.uniq()
 
 
-@_.records.data.ignore
-class Ignore:
-    test: int = _.records.data.primary_key()
+@_.data.no_handler
+@_.data.no_pkey
+class ignored:
+    __no_handler = True
+    __no_pkey    = True
+
+    test : int = 100

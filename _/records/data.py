@@ -1,4 +1,5 @@
 
+import collections
 import dataclasses
 import functools
 import json
@@ -6,25 +7,62 @@ import json
 import _
 
 
-def ignore(cls):
-    setattr(cls, f'_handler', None)
-    return cls
+class Record(_.records.Record):
+    def __init__(self, **kwds):
+        for kwd in kwds:
+            setattr(self, kwd, kwds[kwd])
 
-primary_key = functools.partial(dataclasses.field, metadata={'primary_key':True})
+    class Json(_.records.Record.Json):
+        def default(self, obj):
+            if hasattr(obj, '__dataclass_fields__'):
+                return Record.dict(obj)
+            return super(Json, self).default(obj)
 
-def references(foreign, key=None):
-    return dataclasses.field(metadata={'references':foreign,'key':key})
+    @classmethod
+    def dict(cls, data):
+        return dataclasses.asdict(data)
 
-def unique(*args):
-    def wrap(cls):
-        cls.__unique__ = args
+    @classmethod
+    def load(cls, msg):
+        return cls(**json.loads(msg))
+
+
+class Container(collections.UserDict):
+    @staticmethod
+    def no_handler(cls):
+        setattr(cls, f'_{cls.__name__}__no_handler', True)
         return cls
-    return wrap
+
+    @staticmethod
+    def no_pkey(cls):
+        setattr(cls, f'_{cls.__name__}__no_pkey', True)
+        return cls
+
+    @staticmethod
+    def pkey(arg=True):
+        meta = {'pkey':True}
+        if isinstance(arg, dataclasses.Field):
+            meta.update(arg.metadata)
+        return dataclasses.field(metadata=meta)
+
+    @staticmethod
+    def uniq(arg=True):
+        meta = {'unique':True}
+        if isinstance(arg, dataclasses.Field):
+            meta.update(arg.metadata)
+        return dataclasses.field(metadata=meta)
+
+    @staticmethod
+    def ref(foreign, key=None):
+        return dataclasses.field(metadata={'ref':foreign,'key':key})
 
 
 class Data(_.records.Protocol):
+
+    async def _preinit(self, module):
+        _.data = Container()
+
     def _load(self, module, package):
-        _.dataclasses = {}
 
         for name in dir(module):
             if name.startswith('__'):
@@ -43,56 +81,46 @@ class Data(_.records.Protocol):
             attr = self._dataclass(name, attr)
             setattr(module, name, attr)
 
-    def _dataclass(self, name, dataclass):
-        if hasattr(dataclass, '_handler'):
-            return dataclass
-
+    def _dataclass(self, name, cls):
         # make class a dataclass if it isn't already
-        if not hasattr(dataclass, '__dataclass_fields__'):
-            dataclass = dataclasses.dataclass(dataclass)
-
-        if hasattr(dataclass, '__unique__'):
-            print(dataclass.__unique__)
+        if not dataclasses.is_dataclass(cls):
+            cls = dataclasses.dataclass(kw_only=True)(cls)
 
         members = dict(
-            _db    = self.db,
-            _table = name,
+            db    = self.db,
+            table = name,
             )
 
         table = self.schema.table(name)
-        for field in dataclasses.fields(dataclass):
+        for field in dataclasses.fields(cls):
             column = table.column(field.name)
             column.type(_column_mapping.get(field.type))
-            if field.metadata.get('primary_key', False):
-                column.primary_key()
-                members['_primary_key'] = field.name
 
-            reference = field.metadata.get('references', None)
+            if field.metadata.get('pkey', False):
+                column.primary_key()
+                members['primary_key'] = field.name
+
+            unique = field.metadata.get('unique', False)
+            if unique:
+                table.unique(field.name)
+
+            reference = field.metadata.get('ref', None)
             if reference:
                 key = field.metadata.get('key', None)
                 column.references(reference.__name__, key)
 
-        record   = type(name, (dataclass,Record), members)
-        subclass = type(name, (_.records.Handler,), {'_record':record})
-        _.dataclasses[name] = record
-        _.application._record_handler(self.name, subclass)
-        setattr(dataclass, '_handler', subclass)
-        return dataclass
+        if hasattr(cls, f'_{cls.__name__}__no_pkey'):
+            table.primary_key(None)
 
-class Record(_.records.Record):
-    class Json(_.records.Record.Json):
-        def default(self, obj):
-            if hasattr(obj, '__dataclass_fields__'):
-                return Record.dict(obj)
-            return super(Json, self).default(obj)
+        record  = type(name, (cls,Record), _.prefix(members))
+        _.data[name] = record
 
-    @classmethod
-    def dict(cls, dataclass):
-        return dataclasses.asdict(dataclass)
-
-    @classmethod
-    def load(cls, data):
-        return cls(**json.loads(data))
+        if not hasattr(cls, f'_{cls.__name__}__no_handler'):
+            members['record'] = record
+            handler = type(name, (_.records.Handler,), _.prefix(members))
+            _.application._record_handler(self.name, handler)
+            setattr(cls, '_handler', handler)
+        return cls
 
 
 _column_mapping = {
