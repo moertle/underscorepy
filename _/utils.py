@@ -14,7 +14,21 @@ import sys
 import textwrap
 import time
 
+import tornado.web
+
 import _
+
+
+# a generic error class for throwing exceptions
+class error(Exception):
+    def __init__(self, fmt, *args):
+        self.message = fmt % args
+
+    def __str__(self):
+        return self.message
+
+HTTPError = tornado.web.HTTPError
+
 
 def now():
     return int(time.time() * 1000)
@@ -24,6 +38,7 @@ async def wait(result):
         return result if not asyncio.iscoroutine(result) else await result
     except Exception as e:
         logging.exception("Unhandled exception")
+        raise
 
 prefix = lambda kwds,prepend='_': dict((f'{prepend}{k}',v) for k,v in kwds.items())
 

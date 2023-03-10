@@ -8,8 +8,6 @@
 
 import logging
 
-import tornado.web
-
 import _
 
 
@@ -119,7 +117,7 @@ class DbLogin(_.logins.Login):
         password = self.get_argument('password', None)
 
         if username is None or password is None:
-            raise tornado.web.HTTPError(500)
+            raise _.HTTPError(500)
 
         user = await self.check(username, password)
         if user:
@@ -130,7 +128,7 @@ class DbLogin(_.logins.Login):
 
 class DBLoginRecords(_.handlers.Protected):
     # READ
-    @tornado.web.authenticated
+    @_.auth.protected
     async def get(self, name, username=None):
         if username:
             record = await self._db.find_one(self._table, self._username, username)
@@ -146,17 +144,17 @@ class DBLoginRecords(_.handlers.Protected):
             self.write({'data':data})
 
     # UPDATE
-    @tornado.web.authenticated
+    @_.auth.protected
     async def put(self, name, username=None):
         try:
             user = json.loads(self.request.body)
         except json.decoder.JSONDecodeError:
-            raise tornado.web.HTTPError(500)
+            raise _.HTTPError(500)
 
         username = user.get(self._username, None)
         password = user.get(self._password, None)
         if not username or not password:
-            raise tornado.web.HTTPError(500)
+            raise _.HTTPError(500)
 
         record = dict((k,None) for k in _.config[self._name])
         record.pop('database', None)
@@ -177,7 +175,7 @@ class DBLoginRecords(_.handlers.Protected):
         self.set_status(204)
 
     # DELETE
-    @tornado.web.authenticated
+    @_.auth.protected
     async def delete(self, name, username=None):
         self.set_status(204)
         await self._db.delete(self._table, self._username, username)

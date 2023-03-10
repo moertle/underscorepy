@@ -31,10 +31,6 @@
 # Your underscore app can now authenticate via your GitLab server
 
 
-import tornado.auth
-import tornado.httpclient
-import tornado.web
-
 import _
 
 from .oauth2 import OAuth2

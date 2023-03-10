@@ -9,8 +9,6 @@
 import functools
 import binascii
 
-import tornado.web
-
 import _
 
 
@@ -24,11 +22,11 @@ def basic(realm='Authentication'):
                 username,password = auth.split(':', 1)
                 component = _.config.get(_.name, 'basic', fallback=None)
                 if not component:
-                    raise tornado.web.HTTPError(500, 'No component specified for basic auth')
+                    raise _.HTTPError(500, 'No component specified for basic auth')
                 try:
                     login = _.logins[component]
                 except KeyError:
-                    raise tornado.web.HTTPError(500, 'Invalid component specified for basic auth')
+                    raise _.HTTPError(500, 'Invalid component specified for basic auth')
                 success = await login.check(username, password)
                 if success:
                     return method(self, *args, **kwds)

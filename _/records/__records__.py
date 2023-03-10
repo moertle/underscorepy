@@ -11,8 +11,6 @@ import importlib
 import json
 import uuid
 
-import tornado.web
-
 import _
 
 
@@ -69,7 +67,7 @@ class Protocol:
 
 class Handler(_.handlers.Protected):
     def initialize(self):
-        self.set_header('Content-Type', 'application/json')
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
 
     @_.auth.current_user
     async def get(self, record, record_id=None):
@@ -85,7 +83,7 @@ class Handler(_.handlers.Protected):
         try:
             data = json.loads(self.request.body)
         except json.decoder.JSONDecodeError:
-            raise tornado.web.HTTPError(500)
+            raise _.HTTPError(500)
 
         await _.wait(self._record.put(record_id, data, self.request))
         self.set_status(204)
@@ -93,11 +91,11 @@ class Handler(_.handlers.Protected):
     @_.auth.current_user
     async def delete(self, record, record_id=None):
         if not record_id:
-            raise tornado.web.HTTPError(500)
+            raise _.HTTPError(500)
 
         data = await self._db.find_one(record, self._record._primary_key, record_id)
         if not data:
-            raise tornado.web.HTTPError(404)
+            raise _.HTTPError(404)
 
         await self._db.delete(record, self._record._primary_key, record_id)
         await _.wait(self._record.delete(record_id, data, self.request))

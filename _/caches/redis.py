@@ -10,8 +10,6 @@ import base64
 import json
 import os
 
-import tornado.web
-
 import _
 
 try:
@@ -68,12 +66,12 @@ class Redis(_.caches.Cache):
 
 
 class RedisSessions(_.handlers.Protected):
-    @tornado.web.authenticated
+    @_.auth.protected
     async def get(self, name, session_id=None):
         if session_id:
             session = await self._redis.get(f'session/{session_id}')
             if not session:
-                raise tornado.web.HTTPError(404)
+                raise _.HTTPError(404)
             session = json.loads(session)
             self.write(session)
         else:
@@ -85,7 +83,7 @@ class RedisSessions(_.handlers.Protected):
             data.sort(key=lambda d: d['time'])
             self.write({'data':data})
 
-    @tornado.web.authenticated
+    @_.auth.protected
     async def delete(self, name, session_id=None):
         self.set_status(204)
         if session_id:

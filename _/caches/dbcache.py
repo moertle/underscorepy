@@ -11,8 +11,6 @@ import json
 import logging
 import os
 
-import tornado.web
-
 import _
 
 
@@ -94,7 +92,7 @@ class DbCache(_.caches.Cache):
 
 
 class DbCacheSessions(_.handlers.Protected):
-    @tornado.web.authenticated
+    @_.auth.protected
     async def get(self, name, session_id=None):
         if session_id:
             record = await self._db.find_one(self._table, self._session_id, session_id)
@@ -106,7 +104,7 @@ class DbCacheSessions(_.handlers.Protected):
                 data.append(dict(record))
             self.write({'data':data})
 
-    @tornado.web.authenticated
+    @_.auth.protected
     async def delete(self, name, session_id=None):
         self.set_status(204)
         if session_id:

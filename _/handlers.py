@@ -24,7 +24,7 @@ class Template(tornado.web.RequestHandler):
 class Protected(Template):
     async def prepare(self):
         if _.sessions is None:
-            raise tornado.web.HTTPError(500, 'No session component specified')
+            raise _.HTTPError(500, 'No session component specified')
 
         self.session = None
         session_id = self.get_secure_cookie('session_id', max_age_days=1)

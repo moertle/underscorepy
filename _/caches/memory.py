@@ -9,8 +9,6 @@
 import os
 import json
 
-import tornado.web
-
 import _
 
 
@@ -46,12 +44,12 @@ class Memory(_.caches.Cache):
 
 
 class MemorySessions(_.handlers.Protected):
-    @tornado.web.authenticated
+    @_.auth.protected
     async def get(self, name, session_id=None):
         if session_id:
             session = self._mem[session_id]
             if not session:
-                raise tornado.web.HTTPError(404)
+                raise _.HTTPError(404)
             session = json.loads(session)
             self.write(session)
         else:
@@ -61,7 +59,7 @@ class MemorySessions(_.handlers.Protected):
                 data.append(json.loads(session))
             self.write({'data':data})
 
-    @tornado.web.authenticated
+    @_.auth.protected
     async def delete(self, name, session_id=None):
         self.set_status(204)
         if session_id:

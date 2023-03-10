@@ -1,9 +1,16 @@
+#
+# (c) 2015-2023 Matthew Shaw
+#
+# Authors
+# =======
+# Matthew Shaw <mshaw.cx@gmail.com>
+#
 
 import tornado.auth
 import tornado.httpclient
-import tornado.web
 
 import _
+
 
 # for Google and Gitlab the GoogleOAuth2Mixin is a good starting point
 class OAuth2(tornado.auth.GoogleOAuth2Mixin):

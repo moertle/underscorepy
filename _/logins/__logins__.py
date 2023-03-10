@@ -44,7 +44,7 @@ class Login(tornado.web.RequestHandler):
             await _.wait(_.sessions.save_session(session))
             self.set_secure_cookie('session_id', session['session_id'], expires_days=1)
         except NotImplementedError:
-            raise tornado.web.HTTPError(500, 'on_login method not implemented') from None
+            raise _.HTTPError(500, 'on_login method not implemented') from None
         self.redirect(self.next_url)
 
     async def on_login_failure(self, message='Invalid Login'):

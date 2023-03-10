@@ -10,8 +10,6 @@ import importlib
 import logging
 import sys
 
-import tornado.web
-
 import _
 
 

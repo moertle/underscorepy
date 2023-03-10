@@ -136,18 +136,18 @@ _column_mapping = {
 class Handler(_.records.Handler):
     async def get(self, record, record_id=None):
         try:
-            await _.wait(self._record.get(self, record, record_id=record_id))
+            await self._record.get(self, record, record_id=record_id)
         except AttributeError:
-            await _.wait(super(Handler, self).get(record, record_id))
+            await super(Handler, self).get(record, record_id)
 
     async def put(self, record, record_id=None):
         try:
-            await _.wait(self._record.put(self, record, record_id=record_id))
+            await self._record.put(self, record, record_id=record_id)
         except AttributeError:
-            await _.wait(super(Handler, self).put(record, record_id))
+            await super(Handler, self).put(record, record_id)
 
     async def delete(self, record, record_id=None):
         try:
-            await _.wait(self._record.delete(self, record, record_id=record_id))
+            await self._record.delete(self, record, record_id=record_id)
         except AttributeError:
-            await _.wait(super(Handler, self).delete(record, record_id))
+            await super(Handler, self).delete(record, record_id)
