@@ -7,7 +7,7 @@ class Schema:
         self._tables = {}
 
     def table(self, table_name):
-        self._tables[table_name] = Database.Table(table_name)
+        self._tables[table_name] = Table(table_name)
         return self._tables[table_name]
 
     async def apply(self):
@@ -29,7 +29,7 @@ class Table:
         self._unique       = {}
 
     def column(self, column_name):
-        self._columns[column_name] = Database.Column(self, column_name)
+        self._columns[column_name] = Column(self, column_name)
         return self._columns[column_name]
 
     def default_id(self, default_id):

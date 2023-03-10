@@ -8,7 +8,7 @@
 
 import _
 
-from .oauth2 import OAuth2
+from _.interfaces.logins.oauth2 import OAuth2
 
 
 class Google(OAuth2, _.interfaces.Login):

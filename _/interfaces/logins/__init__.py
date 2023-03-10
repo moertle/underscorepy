@@ -1,6 +1,6 @@
 
 import _
 
-from . import login
+from .login import Login
 
-_.interfaces.Login = login.Login
+_.interfaces.Login = Login

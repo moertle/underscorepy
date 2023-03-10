@@ -1,8 +1,8 @@
 import _
 
-from . import protocol
-from . import record
-from . import handler
+from .protocol import Protocol
+from .record   import Record
+from .handler  import Handler
 
-_.interfaces.Protocol = protocol.Protocol
-_.interfaces.Record   = record.Record
+_.interfaces.Protocol = Protocol
+_.interfaces.Record   = Record

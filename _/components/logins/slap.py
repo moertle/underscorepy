@@ -20,7 +20,7 @@ except ImportError:
     raise _.error('Missing LDAP module')
 
 
-class Slap(_.logins.Login):
+class Slap(_.interfaces.Login):
     @classmethod
     async def init(cls, name, **kwds):
         _.argparser.add_argument(f'--{name}-list-users',

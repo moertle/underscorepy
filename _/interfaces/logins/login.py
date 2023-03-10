@@ -18,8 +18,9 @@ class Login(tornado.web.RequestHandler):
             await cls.init(name, **kwds)
         except TypeError as e:
             raise _.error('%s', e)
-        _.login[name] = cls
+        _.logins[name] = cls
         _.application._login_handler('login', cls)
+
     @classmethod
     async def init(cls, name):
         pass

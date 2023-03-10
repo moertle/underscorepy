@@ -1,4 +1,6 @@
 
+import importlib
+
 import _
 
 
@@ -6,7 +8,7 @@ class Protocol:
     @classmethod
     async def _(cls, name, **kwds):
         self = cls()
-        _.record[name] = self
+        _.records[name] = self
         try:
             await self.init(name, **kwds)
         except TypeError as e:
@@ -19,12 +21,12 @@ class Protocol:
             raise _.error('Unknown module: %s', module)
 
         if database is None:
-            if 1 == len(_.database):
-                database = list(_.database.keys())[0]
+            if 1 == len(_.databases):
+                database = list(_.databases.keys())[0]
             else:
                 raise _.error('dbcache requires a database to be specified')
 
-        self.db   = _.database[database]
+        self.db   = _.databases[database]
         self.name = name
 
         self.schema = self.db.schema(module)

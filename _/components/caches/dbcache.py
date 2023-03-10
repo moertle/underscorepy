@@ -30,12 +30,11 @@ class DbCache(_.interfaces.Cache):
             raise _.error('Application does not have is_session_expired function defined')
 
         if database is None:
-            if 1 == len(_.database):
-                self._database = list(_.database.keys())[0]
+            if 1 == len(_.databases):
+                database = list(_.databases.keys())[0]
             else:
                 raise _.error('dbcache requires a database to be specified')
-
-        self.db = _.database[self._database]
+        self.db = _.databases[database]
 
         schema = self.db.schema('config')
         table = schema.table(self._config)
@@ -72,12 +71,12 @@ class DbCache(_.interfaces.Cache):
                 self._key_col : self._key,
                 self._val_col : secret,
             }
-            await self.db.upsert(self._config, self._key_col, record)
+            await self.db.upsert(self._config, record)
         return secret
 
     async def save_session(self, session):
         super(DbCache, self).save_session(session)
-        await self.db.upsert(self._table, self._session_id, session)
+        await self.db.upsert(self._table, session)
 
     async def load_session(self, session_id):
         record = await self.db.find_one(self._table, self._session_id, session_id)

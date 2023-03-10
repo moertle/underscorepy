@@ -13,12 +13,12 @@ class Skeleton(_.Application):
     async def initialize(self):
         self.websockets = {}
 
-        self.db = _.database['sqlite']
-        self.data = _.record['data']
+        self.db = _.databases['sqlite']
+        #self.data = _.records['data']
 
-        audio = _.dataclasses['Audio'](device='cool',frequency=48000,bits=16,samples=2048)
-        json = audio.dump()
-        audio = _.dataclasses['Audio'].load(json)
+        #audio = _.data['Audio'](device='cool',frequency=48000,bits=16,samples=2048)
+        #json = audio.dump()
+        #audio = _.data['Audio'].load(json)
 
         s = _.protobufs['Skeleton']()
         s.field1 = 'matt'

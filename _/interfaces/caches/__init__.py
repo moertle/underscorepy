@@ -1,4 +1,7 @@
 
-from . import cache
+import _
 
-_.interfaces.Cache = cache.Cache
+from .cache   import Cache
+from .handler import Handler
+
+_.interfaces.Cache = Cache

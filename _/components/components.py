@@ -14,10 +14,29 @@ import tornado.web
 import _
 
 
+class Component(type(_)):
+    def __init__(self, module):
+        super(Component, self).__init__(module.__name__)
+        self.module = module
+        self._components = {}
+
+    def __getattr__(self, name):
+        return getattr(self.module, name)
+
+    def __getitem__(self, name):
+        try:
+            return getattr(self.module, name)
+        except AttributeError:
+            raise KeyError(name)
+
+
 async def load(component_type):
     # skip components not specified in the config
     if component_type not in _.config:
         return
+
+    module = importlib.import_module(f'_.components.{component_type}')
+    setattr(_.components, 'databases', Component(module))
 
     # iterate over the components specified in the config
     for name in _.config[component_type]:

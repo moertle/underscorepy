@@ -54,7 +54,7 @@ class Application(tornado.web.Application):
             self.stop()
 
         if not self._stop_event.is_set():
-            for name,component in _.login.items():
+            for name,component in _.logins.items():
                 try:
                     await _.wait(component.args(name))
                 except _.error as e:
@@ -63,7 +63,7 @@ class Application(tornado.web.Application):
                     break
 
         if not self._stop_event.is_set():
-            for name,component in _.support.items():
+            for name,component in _.supports.items():
                 try:
                     await _.wait(component.args(name))
                 except _.error as e:
@@ -77,20 +77,20 @@ class Application(tornado.web.Application):
             except _.error as e:
                 logging.error('%s', e)
 
-        for name,component in _.database.items():
+        for name,component in _.databases.items():
             await component.close()
 
-        for name,component in _.cache.items():
+        for name,component in _.caches.items():
             await component.close()
-
-    def _login_handler(self, name, cls):
-        self._login_patterns.append(
-            (f'/{name}/{cls.__name__}', cls)
-            )
 
     def _record_handler(self, name, cls):
         self._records_patterns.append(
             (f'/{name}/({cls.__name__})/(.*)', cls)
+            )
+
+    def _login_handler(self, name, cls):
+        self._login_patterns.append(
+            (f'/{name}/{cls.__name__}', cls)
             )
 
     async def __async_init(self, **kwds):
@@ -99,7 +99,7 @@ class Application(tornado.web.Application):
         if _.sessions:
             logging.debug('Sessions cache: %s', _.sessions)
             try:
-                _.sessions = _.cache[_.sessions]
+                _.sessions = _.caches[_.sessions]
             except KeyError:
                 raise _.error('Unknown sessions cache instance: %s', _.sessions)
 
@@ -119,10 +119,10 @@ class Application(tornado.web.Application):
         patterns = list(self._records_patterns)
 
         if self._login_patterns:
-            import _.handlers.login
+            from  .handlers import login
             self._login_patterns += [
-                ( r'/login',  _.handlers.login.LoginPage ),
-                ( r'/logout', _.handlers.login.Logout    ),
+                ( r'/login',  login.LoginPage ),
+                ( r'/logout', login.Logout    ),
                 ]
             self.settings['login_url'] = '/login'
         patterns += self._login_patterns

@@ -19,7 +19,7 @@ import _
 # Passwords can be managed with Apache's htpasswd program
 
 
-class Htpasswd(_.logins.Login):
+class Htpasswd(_.interfaces.Login):
     @classmethod
     async def init(cls, name, **kwds):
         pass

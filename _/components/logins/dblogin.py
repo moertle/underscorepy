@@ -13,7 +13,7 @@ import tornado.web
 import _
 
 
-class DbLogin(_.logins.Login):
+class DbLogin(_.interfaces.Login):
     _table    = 'users'
     _username = 'username'
     _password = 'password'
@@ -21,13 +21,12 @@ class DbLogin(_.logins.Login):
     @classmethod
     async def init(cls, name, database=None, table=None, username=None, password=None, **kwds):
         if database is None:
-            if 1 == len(_.database):
-                cls._database = list(_.database.keys())[0]
+            if 1 == len(_.databases):
+                cls._database = list(_.databases.keys())[0]
             else:
                 raise _.error('dblogin requires a database to be specified')
-
         try:
-            db = _.database[cls._database]
+            cls._db = _.databases[cls._database]
         except AttributeError:
             raise _.error('No database specified for %s', name)
 
@@ -44,7 +43,7 @@ class DbLogin(_.logins.Login):
             help='list users'
             )
 
-        schema = db.schema(name)
+        schema = cls._db.schema(name)
         table = schema.table(cls._table)
         table.column(cls._username).primary_key()
         table.column(cls._password)
@@ -54,7 +53,7 @@ class DbLogin(_.logins.Login):
 
         members = {
             'name'     : name,
-            'db'       : db,
+            'db'       : cls._db,
             'table'    : cls._table,
             'username' : cls._username,
             'password' : cls._password,
@@ -64,11 +63,6 @@ class DbLogin(_.logins.Login):
 
     @classmethod
     async def args(cls, name):
-        try:
-            db = _.database[cls._database]
-        except AttributeError:
-            raise _.error('No database specified for %s', name)
-
         # if only one login specified use short argument
         prefix = f'{name}_' if len(_.config['logins']) > 1 else ''
 
@@ -90,11 +84,11 @@ class DbLogin(_.logins.Login):
             if callback:
                 await _.wait(callback(name, record))
 
-            await db.upsert(cls._table, cls._username, record)
+            await cls._db.upsert(cls._table, cls._username, record)
             _.application.stop()
 
         if getattr(_.args, f'{prefix}list_users'):
-            for user in await db.find(cls._table):
+            for user in await cls._db.find(cls._table):
                 print(user[cls._username])
             _.application.stop()
 
@@ -104,14 +98,7 @@ class DbLogin(_.logins.Login):
             password = _.auth.simple_hash(username + password)
 
         try:
-            db = _.database[cls._database]
-        except KeyError:
-            raise tornado.web.HTTPError(500, f'database "{cls._database}" not defined in ini file')
-        except AttributeError:
-            raise tornado.web.HTTPError(500, 'database not specified in ini file')
-
-        try:
-            record = await db.find_one(cls._table, cls._username, username)
+            record = await cls._db.find_one(cls._table, cls._username, username)
         except _.error as e:
             logging.warning('%s', e)
             record = None

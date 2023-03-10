@@ -17,7 +17,7 @@ import _
 from . import Protobuf_pb2
 
 
-class Protobuf(_.records.Protocol):
+class Protobuf(_.interfaces.Protocol):
     def _load(self, module, package):
         _.protobufs = {}
 
@@ -64,24 +64,24 @@ class Protobuf(_.records.Protocol):
                     column.primary_key()
                     members['_primary_key'] = field.name
             # check for foreign key
-            if options.HasExtension(Protobuf_pb2.foreign_key):
-                table.foreign_key(options.Extensions[Protobuf_pb2.foreign_key])
+            if options.HasExtension(Protobuf_pb2.references):
+                table.foreign_key(options.Extensions[Protobuf_pb2.references])
             if field.label is field.LABEL_REPEATED:
                 column.repeated()
 
         # Protobuf does not want you to subclass the Message
         # so we dynamically create a thin wrapper
         record   = type(name, (Record,), members)
-        subclass = type(name, (_.records.Handler,), {'_record':record})
+        subclass = type(name, (_.interfaces.records.Handler,), {'_record':record})
         _.protobufs[name] = record
         _.application._record_handler(self.name, subclass)
 
 
-class Record(_.records.Record):
+class Record(_.interfaces.Record):
     def __init__(self, _msg=None):
         self.__dict__['_msg'] = _msg if _msg else self._message()
 
-    class Json(_.records.Record.Json):
+    class Json(_.interfaces.Record.Json):
         def default(self, obj):
             if hasattr(obj, 'DESCRIPTOR'):
                 return Record.dict(obj)

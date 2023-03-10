@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skeleton.proto;
 
-import "_/records/Protobuf.proto";
+import "_/components/records/Protobuf.proto";
 
 message Skeleton {
     string field1  = 1
@@ -24,10 +24,9 @@ message NoTable {
 }
 
 message DefaultId {
-     string field1 = 1
+    string field1 = 1
         [(_.records.unique) = true];
-     int32  field2 = 2
+    int32  field2 = 2
         [(_.records.unique) = true];
     repeated int32  field3 = 3;
 }
-

@@ -40,6 +40,9 @@ class SQLite(_.interfaces.Database):
         await cursor.execute('PRAGMA foreign_keys = ON;')
         await cursor.close()
 
+        if not schema:
+            return
+
         if not os.path.isfile(schema):
             schema = _.paths(schema)
 

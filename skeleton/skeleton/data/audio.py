@@ -2,12 +2,12 @@
 import _
 
 class Audio:
-    device:    str = _.records.dataclass.primary_key()
+    device:    str = _.records.data.primary_key()
     frequency: int
     bits:      int
     samples:   int
 
 
-@_.records.dataclass.ignore
+@_.records.data.ignore
 class Ignore:
-    test: int = _.records.dataclass.primary_key()
+    test: int = _.records.data.primary_key()

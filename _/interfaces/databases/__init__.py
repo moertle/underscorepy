@@ -1,7 +1,7 @@
 
 import _
 
-from . import database
-from . import schema
+from .database import Database
+from .schema   import Schema
 
-_.interfaces.Database = database.Database
+_.interfaces.Database = Database

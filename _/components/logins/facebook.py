@@ -14,7 +14,7 @@ import tornado.auth
 import tornado.web
 
 
-class Facebook(_.logins.Login, tornado.auth.FacebookGraphMixin):
+class Facebook(_.interfaces.Login, tornado.auth.FacebookGraphMixin):
     @classmethod
     async def init(cls, name, **kwds):
         cls.extra = {"scope": "read_stream,offline_access"}

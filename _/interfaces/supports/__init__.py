@@ -1,6 +1,6 @@
 
 import _
 
-from . import support
+from .support import Support
 
-_.interfaces.Support = support.Support
+_.interfaces.Support = Support

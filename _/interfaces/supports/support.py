@@ -15,7 +15,7 @@ class Support:
     @classmethod
     async def _(cls, name, **kwds):
         self = cls()
-        _.support[name] = self
+        _.supports[name] = self
         self.root = os.path.dirname(__file__)
         self.root = os.path.abspath(self.root)
         await self.init(name, **kwds)

@@ -8,6 +8,7 @@
 
 import _
 
+from .schema import Schema
 
 class Database:
     @classmethod
@@ -44,4 +45,4 @@ class Database:
         raise NotImplementedError
 
     def schema(self, name):
-        return Database.Schema(self, name)
+        return Schema(self, name)
