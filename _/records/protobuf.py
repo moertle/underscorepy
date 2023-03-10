@@ -28,6 +28,12 @@ class Record(_.records.Record):
             return super(Json, self).default(obj)
 
     @classmethod
+    def load(cls, data):
+        msg = cls._message()
+        google.protobuf.json_format.Parse(data, msg)
+        return cls(msg)
+
+    @classmethod
     def dict(cls, message):
         return google.protobuf.json_format.MessageToDict(
             message,
@@ -35,11 +41,8 @@ class Record(_.records.Record):
             preserving_proto_field_name    = True,
             )
 
-    @classmethod
-    def load(cls, data):
-        msg = cls._message()
-        google.protobuf.json_format.Parse(data, msg)
-        return cls(msg)
+    def _asdict(self):
+        return self.dict(self._msg)
 
     def __getattr__(self, name):
         return getattr(self._msg, name)

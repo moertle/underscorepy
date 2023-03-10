@@ -19,15 +19,15 @@ class Record(_.records.Record):
             return super(Json, self).default(obj)
 
     @classmethod
+    def load(cls, msg):
+        return cls(**json.loads(msg))
+
+    @classmethod
     def dict(cls, data):
         return dataclasses.asdict(data)
 
     def _asdict(self):
         return dataclasses.asdict(self)
-
-    @classmethod
-    def load(cls, msg):
-        return cls(**json.loads(msg))
 
 
 class Container(collections.UserDict):
