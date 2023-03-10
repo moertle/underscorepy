@@ -8,10 +8,10 @@
 
 import _
 
-from _.interfaces.logins.oauth2 import OAuth2
+from .oauth2 import OAuth2
 
 
-class Google(OAuth2, _.interfaces.Login):
+class Google(OAuth2, _.logins.Login):
     @classmethod
     async def init(cls, name, **kwds):
         cls.scope = ['email']

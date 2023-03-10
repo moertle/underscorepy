@@ -21,8 +21,13 @@ except ImportError:
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
 
 
-class SQLite(_.interfaces.Database):
-    async def init(self, path=None, schema=None):
+class SQLite(_.databases.Database):
+    async def init(self, name, path=None, schema=None):
+        self.conn = None
+
+        if path is None:
+            raise _.error(f'Specify "path" for SQLite {name}')
+
         aiosqlite.register_adapter(bool, int)
         aiosqlite.register_converter('BOOLEAN', lambda v: bool(int(v)))
 
@@ -56,8 +61,9 @@ class SQLite(_.interfaces.Database):
             raise _.error('Schema not found: %s', schema)
 
     async def close(self):
-        await self.conn.commit()
-        await self.conn.close()
+        if self.conn:
+            await self.conn.commit()
+            await self.conn.close()
 
     async def execute(self, statement, args=None):
         lastrowid = 0

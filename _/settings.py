@@ -139,3 +139,11 @@ async def load(**kwds):
 
     if not _.args.port:
         _.args.port = _.config.getint(_.name, 'port', fallback=8080)
+
+    try:
+        for name,component in _.supports.items():
+            await _.wait(component.args(name))
+    except _.error as e:
+        logging.error('%s', e)
+        _.application.stop()
+        return

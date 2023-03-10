@@ -28,3 +28,10 @@ from . import auth
 from . import components
 
 from .application import Application
+
+# placeholder for comonents
+caches   = {}
+database = {}
+logins   = {}
+records  = {}
+supports = {}

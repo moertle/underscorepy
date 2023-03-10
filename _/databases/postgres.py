@@ -17,8 +17,8 @@ except ImportError:
     raise _.error('Missing psycopg (PostgreSQL) module')
 
 
-class Postgres(_.interfaces.Database):
-    async def init(self, **kwds):
+class Postgres(_.databases.Database):
+    async def init(self, name, **kwds):
         self.dsn = ' '.join('{0}={1}'.format(k, v) for k,v in kwds.items())
 
         sanitized = re.sub('password=[^ ]*', 'password=****', self.dsn)

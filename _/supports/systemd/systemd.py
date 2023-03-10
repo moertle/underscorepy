@@ -13,7 +13,7 @@ import sys
 import _
 
 
-class Systemd(_.interfaces.Support):
+class Systemd(_.supports.Support):
     async def init(self, name, **kwds):
         self.params = dict(
             ns        = _.ns,

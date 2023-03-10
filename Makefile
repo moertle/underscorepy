@@ -2,7 +2,7 @@ PROTOC = protoc
 PROTOFLAGS = -I. -I`pkg-config protobuf --variable=includedir`
 
 # find all proto files in the records protobuf directory
-PROTO_FILES := $(wildcard _/components/records/*.proto)
+PROTO_FILES := $(wildcard _/records/*.proto)
 PB2_FILES   := $(patsubst %.proto, %_pb2.py, $(PROTO_FILES))
 
 

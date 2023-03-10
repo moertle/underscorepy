@@ -12,7 +12,7 @@ import os
 import _
 
 
-class Nginx(_.interfaces.Support):
+class Nginx(_.supports.Support):
     async def init(self, name, **kwds):
         self.params = dict(
             ns         = _.ns,

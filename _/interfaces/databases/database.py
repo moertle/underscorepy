@@ -15,7 +15,7 @@ class Database:
     async def _(cls, name, **kwds):
         self = cls()
         _.databases[name] = self
-        await self.init(**kwds)
+        await self.init(name, **kwds)
 
     async def init(self, **kwds):
         pass

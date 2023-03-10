@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package skeleton.proto;
 
-import "_/components/records/Protobuf.proto";
+import "_/records/Protobuf.proto";
 
 message Skeleton {
     string field1  = 1

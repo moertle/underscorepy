@@ -17,7 +17,7 @@ import _
 from . import Protobuf_pb2
 
 
-class Protobuf(_.interfaces.Protocol):
+class Protobuf(_.records.Protocol):
     def _load(self, module, package):
         _.protobufs = {}
 
@@ -72,16 +72,16 @@ class Protobuf(_.interfaces.Protocol):
         # Protobuf does not want you to subclass the Message
         # so we dynamically create a thin wrapper
         record   = type(name, (Record,), members)
-        subclass = type(name, (_.interfaces.records.Handler,), {'_record':record})
+        subclass = type(name, (_.records.Handler,), {'_record':record})
         _.protobufs[name] = record
         _.application._record_handler(self.name, subclass)
 
 
-class Record(_.interfaces.Record):
+class Record(_.records.Record):
     def __init__(self, _msg=None):
         self.__dict__['_msg'] = _msg if _msg else self._message()
 
-    class Json(_.interfaces.Record.Json):
+    class Json(_.records.Record.Json):
         def default(self, obj):
             if hasattr(obj, 'DESCRIPTOR'):
                 return Record.dict(obj)

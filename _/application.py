@@ -63,35 +63,16 @@ class Application(tornado.web.Application):
                     break
 
         if not self._stop_event.is_set():
-            for name,component in _.supports.items():
-                try:
-                    await _.wait(component.args(name))
-                except _.error as e:
-                    logging.error('%s', e)
-                    self.stop()
-                    break
-
-        if not self._stop_event.is_set():
             try:
                 await self.__async_init()
             except _.error as e:
                 logging.error('%s', e)
 
-        for name,component in _.databases.items():
-            await component.close()
-
         for name,component in _.caches.items():
             await component.close()
 
-    def _record_handler(self, name, cls):
-        self._records_patterns.append(
-            (f'/{name}/({cls.__name__})/(.*)', cls)
-            )
-
-    def _login_handler(self, name, cls):
-        self._login_patterns.append(
-            (f'/{name}/{cls.__name__}', cls)
-            )
+        for name,component in _.databases.items():
+            await component.close()
 
     async def __async_init(self, **kwds):
         # check if a sessions cache was specified
@@ -150,6 +131,16 @@ class Application(tornado.web.Application):
             raise _.error('%s', e) from None
 
         logging.info('Listening on %s:%d', _.args.address, _.args.port)
+
+    def _record_handler(self, name, cls):
+        self._records_patterns.append(
+            (f'/{name}/({cls.__name__})/(.*)', cls)
+            )
+
+    def _login_handler(self, name, cls):
+        self._login_patterns.append(
+            (f'/{name}/{cls.__name__}', cls)
+            )
 
     async def initialize(self):
         'underscore apps should override this function'

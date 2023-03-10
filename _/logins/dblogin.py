@@ -13,7 +13,7 @@ import tornado.web
 import _
 
 
-class DbLogin(_.interfaces.Login):
+class DbLogin(_.logins.Login):
     _table    = 'users'
     _username = 'username'
     _password = 'password'

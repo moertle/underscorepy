@@ -21,13 +21,19 @@ class Component(type(_)):
         self._components = {}
 
     def __getattr__(self, name):
+        if name in self._components:
+            return self._components[name]
         return getattr(self.module, name)
 
     def __getitem__(self, name):
-        try:
-            return getattr(self.module, name)
-        except AttributeError:
-            raise KeyError(name)
+        return self._components[name]
+
+    def __setitem__(self, name, value):
+        print(name, value)
+        self._components[name] = value
+
+    def items(self):
+        return self._components.items()
 
 
 async def load(component_type):
@@ -35,8 +41,8 @@ async def load(component_type):
     if component_type not in _.config:
         return
 
-    module = importlib.import_module(f'_.components.{component_type}')
-    setattr(_.components, 'databases', Component(module))
+    module = importlib.import_module(f'_.{component_type}')
+    setattr(_, component_type, Component(module))
 
     # iterate over the components specified in the config
     for name in _.config[component_type]:
@@ -53,7 +59,7 @@ async def load(component_type):
             import_path = component[1:]
         else:
             attr = None
-            import_path = f'_.components.{component_type}.{component}'
+            import_path = f'_.{component_type}.{component}'
 
         try:
             module = importlib.import_module(import_path)

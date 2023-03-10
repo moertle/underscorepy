@@ -22,7 +22,7 @@ def unique(*args):
     return wrap
 
 
-class Data(_.interfaces.Protocol):
+class Data(_.records.Protocol):
     def _load(self, module, package):
         _.dataclasses = {}
 
@@ -81,8 +81,8 @@ class Data(_.interfaces.Protocol):
         setattr(dataclass, '_handler', subclass)
         return dataclass
 
-class Record(_.interfaces.Record):
-    class Json(_.interfaces.Record.Json):
+class Record(_.records.Record):
+    class Json(_.records.Record.Json):
         def default(self, obj):
             if hasattr(obj, '__dataclass_fields__'):
                 return Record.dict(obj)

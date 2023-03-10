@@ -37,10 +37,10 @@ import tornado.web
 
 import _
 
-from _.interfaces.logins.oauth2 import OAuth2
+from .oauth2 import OAuth2
 
 
-class GitLab(OAuth2, _.interfaces.Login):
+class GitLab(OAuth2, _.logins.Login):
     @classmethod
     async def init(cls, name, gitlab, **kwds):
         cls.scope = ['read_user']
