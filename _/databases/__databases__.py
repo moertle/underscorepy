@@ -92,7 +92,6 @@ class Table:
         return self
 
     def foreign_key(self, key):
-        #'UUID REFERENCES {table}({table}_id) ON DELETE CASCADE'.format(table=foreign_key.lower())
         self._foreign_keys[key] = True
         return self
 
