@@ -7,7 +7,6 @@
 #
 
 import asyncio
-import importlib
 import inspect
 import logging
 import os
@@ -40,39 +39,6 @@ sql = lambda statement: textwrap.dedent(statement.strip())
 
 # to pass _.function as a filter to the all function
 function = type(lambda: None)
-
-
-class MetaLoader:
-    def find_spec(self, fullname, path, target=None):
-        parts = fullname.split('.')
-        if parts[0] != '_':
-            return
-        fullpath = os.path.join(_.root, *parts)
-        if os.path.exists(fullpath + '.py'):
-            loader = importlib.machinery.SourceFileLoader(fullname, fullpath+'.py')
-            return importlib.util.spec_from_loader(fullname, loader)
-        if not os.path.isdir(fullpath):
-            return
-        fullpath = os.path.join(fullpath, f'__{parts[-1]}__.py')
-        if not os.path.exists(fullpath):
-            return
-        spec = importlib.machinery.ModuleSpec(fullname, self)
-        spec.fullpath = fullpath
-        return spec
-
-    def create_module(self, spec):
-        loader = importlib.machinery.SourceFileLoader(spec.name, spec.fullpath)
-        spec   = importlib.util.spec_from_loader(loader.name, loader)
-        module = importlib.util.module_from_spec(spec)
-        module.__package__ = spec.name
-        module.__path__    = [os.path.abspath(os.path.join(*spec.name.split('.')))]
-        return module
-
-    def exec_module(self, module):
-        module.__loader__.exec_module(module)
-
-
-sys.meta_path.insert(0, MetaLoader())
 
 
 def all(instance=object, cls=None, prefix='', suffix=''):
