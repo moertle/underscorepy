@@ -100,10 +100,9 @@ class Application(tornado.web.Application):
         patterns = list(self._records_patterns)
 
         if self._login_patterns:
-            from  .handlers import login
             self._login_patterns += [
-                ( r'/login',  login.LoginPage ),
-                ( r'/logout', login.Logout    ),
+                ( r'/login',  _.logins.LoginPage ),
+                ( r'/logout', _.logins.Logout    ),
                 ]
             self.settings['login_url'] = '/login'
         patterns += self._login_patterns

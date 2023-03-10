@@ -10,7 +10,16 @@ import tornado.web
 
 import _
 
-from .template import Template
+
+class Template(tornado.web.RequestHandler):
+    def initialize(self, template='index', **kwds):
+        self.kwds = kwds
+        self.template = template + '.html'
+
+    def get(self, template=None):
+        template = template + '.html' if template else self.template
+        self.render(template, **self.kwds)
+
 
 class Protected(Template):
     async def prepare(self):
