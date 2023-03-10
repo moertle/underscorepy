@@ -58,12 +58,11 @@ class Container(collections.UserDict):
 
 
 class Data(_.records.Protocol):
-
-    async def _preinit(self, module):
+    async def init(self, module, database=None):
         _.data = Container()
+        await super(Data, self).init(module, database)
 
     def _load(self, module, package):
-
         for name in dir(module):
             if name.startswith('__'):
                 continue
@@ -124,6 +123,7 @@ class Data(_.records.Protocol):
 
 
 _column_mapping = {
-    str: 'TEXT',
-    int: 'INTEGER'
+    str:  'TEXT',
+    int:  'INTEGER',
+    bool: 'BOOLEAN',
     }

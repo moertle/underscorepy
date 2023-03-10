@@ -43,7 +43,6 @@ class Protocol:
             raise _.error('%s', e)
 
     async def init(self, module, database=None):
-        await _.wait(self._preinit(module))
         try:
             imported = importlib.import_module(module)
         except ModuleNotFoundError:
