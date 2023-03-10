@@ -120,7 +120,7 @@ class Data(_.records.Protocol):
 
         if not hasattr(cls, f'_{cls.__name__}__no_handler'):
             members['record'] = record
-            handler = type(name, (_.records.Handler,), _.prefix(members))
+            handler = type(name, (Handler,), _.prefix(members))
             _.application._record_handler(self.name, handler)
             setattr(cls, '_handler', handler)
         return cls
@@ -131,3 +131,23 @@ _column_mapping = {
     int:  'INTEGER',
     bool: 'BOOLEAN',
     }
+
+
+class Handler(_.records.Handler):
+    async def get(self, record, record_id=None):
+        try:
+            await _.wait(self._record.get(self, record, record_id=record_id))
+        except AttributeError:
+            await _.wait(super(Handler, self).get(record, record_id))
+
+    async def put(self, record, record_id=None):
+        try:
+            await _.wait(self._record.put(self, record, record_id=record_id))
+        except AttributeError:
+            await _.wait(super(Handler, self).put(record, record_id))
+
+    async def delete(self, record, record_id=None):
+        try:
+            await _.wait(self._record.delete(self, record, record_id=record_id))
+        except AttributeError:
+            await _.wait(super(Handler, self).delete(record, record_id))

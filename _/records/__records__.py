@@ -68,7 +68,10 @@ class Protocol:
 
 
 class Handler(_.handlers.Protected):
-    @tornado.web.authenticated
+    def initialize(self):
+        self.set_header('Content-Type', 'application/json')
+
+    @_.auth.current_user
     async def get(self, record, record_id=None):
         if not record_id:
             records = await self._db.find(record)
@@ -77,7 +80,7 @@ class Handler(_.handlers.Protected):
             record = await self._db.find_one(record, self._record._primary_key, record_id)
             self.write(record)
 
-    @tornado.web.authenticated
+    @_.auth.current_user
     async def put(self, record, record_id=None):
         try:
             data = json.loads(self.request.body)
@@ -87,7 +90,7 @@ class Handler(_.handlers.Protected):
         await _.wait(self._record.put(record_id, data, self.request))
         self.set_status(204)
 
-    @tornado.web.authenticated
+    @_.auth.current_user
     async def delete(self, record, record_id=None):
         if not record_id:
             raise tornado.web.HTTPError(500)
