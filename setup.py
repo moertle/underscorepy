@@ -12,7 +12,7 @@ setuptools.setup(
     license              = __license__,
     url                  = 'https://shaw.cx/_.py',
     description          = '_.py library',
-    long_description     = open('README.rst').read(),
+    long_description     = open('README.md').read(),
     packages             = setuptools.find_packages(),
     include_package_data = True,
     zip_safe             = False,
