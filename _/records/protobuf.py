@@ -69,47 +69,46 @@ class Protobuf(_.records.Protocol):
                 self._message(name, message)
 
     def _message(self, name, message):
-        options = message.DESCRIPTOR.GetOptions()
+        table_options = message.DESCRIPTOR.GetOptions()
 
-        # ignore messages explicitly defined as not a table
-        if options.HasExtension(Protobuf_pb2.ignore):
-            if options.Extensions[Protobuf_pb2.ignore]:
-                return
+        members = dict(message=message)
 
-        members = dict(
-            message = message,
-            db      = self.db,
-            table   = name,
-            )
+        if not table_options.Extensions[Protobuf_pb2.no_db]:
+            members.update(dict(db=self.db, table=name))
+            table = self.schema.table(name)
+            if table_options.HasExtension(Protobuf_pb2.id):
+                table.default_id(table_options.Extensions[Protobuf_pb2.id])
 
-        table = self.schema.table(name)
-        if options.HasExtension(Protobuf_pb2.default_id):
-            table.default_id(options.Extensions[Protobuf_pb2.default_id])
+            # iterate over message to determine columns
+            for field in message.DESCRIPTOR.fields:
+                column = table.column(field.name)
+                column.type(_column_mapping[field.type])
 
-        # iterate over message to determine columns
-        for field in message.DESCRIPTOR.fields:
-            column = table.column(field.name)
-            column.type(_column_mapping[field.type])
-
-            options = field.GetOptions()
-            # check if column should be a primary key
-            if options.HasExtension(Protobuf_pb2.primary_key):
-                if options.Extensions[Protobuf_pb2.primary_key]:
+                col_options = field.GetOptions()
+                # check if column should be a primary key
+                if col_options.Extensions[Protobuf_pb2.pkey]:
                     column.primary_key()
                     members['primary_key'] = field.name
-            # check for foreign key
-            if options.HasExtension(Protobuf_pb2.references):
-                table.foreign_key(options.Extensions[Protobuf_pb2.references])
-            if field.label is field.LABEL_REPEATED:
-                column.repeated()
+                # check for foreign key
+                if col_options.HasExtension(Protobuf_pb2.ref):
+                    table.foreign_key(col_options.Extensions[Protobuf_pb2.ref])
+                if field.label is field.LABEL_REPEATED:
+                    column.repeated()
 
         # Protobuf does not want you to subclass the Message
         # so we dynamically create a thin wrapper
         record  = type(name, (Record,), _.prefix(members))
-        members['record'] = record
-        handler = type(name, (_.records.Handler,), _.prefix(members))
         _.protobuf[name] = record
-        _.application._record_handler(self.name, handler)
+
+        add_handler = True
+        # ignore messages explicitly defined as not a table
+        if table_options.Extensions[Protobuf_pb2.no_handler]:
+            add_handler = False
+
+        if add_handler:
+            members['record'] = record
+            handler = type(name, (_.records.Handler,), _.prefix(members))
+            _.application._record_handler(self.name, handler)
 
 
 _column_mapping = [

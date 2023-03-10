@@ -5,13 +5,15 @@ import "google/protobuf/descriptor.proto";
 package _.records;
 
 extend google.protobuf.MessageOptions {
-    string default_id = 50001;
-    bool   ignore     = 50002;
+    string id         = 50001;
+    bool   no_db      = 50002;
+    bool   no_pkey    = 50003;
+    bool   no_handler = 50004;
 }
 
 extend google.protobuf.FieldOptions {
-    bool   primary_key = 50001;
-    bool   unique      = 50002;
-    string references  = 50003;
-    string paired      = 50004;
+    bool   pkey       = 50001;
+    bool   uniq       = 50002;
+    string ref        = 50003;
+    string paired     = 50004;
 }

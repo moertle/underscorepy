@@ -29,6 +29,11 @@ class Record(_.records.Record):
 
 class Container(collections.UserDict):
     @staticmethod
+    def no_db(cls):
+        setattr(cls, f'_{cls.__name__}__no_db', True)
+        return cls
+
+    @staticmethod
     def no_handler(cls):
         setattr(cls, f'_{cls.__name__}__no_handler', True)
         return cls
@@ -85,31 +90,30 @@ class Data(_.records.Protocol):
         if not dataclasses.is_dataclass(cls):
             cls = dataclasses.dataclass(kw_only=True)(cls)
 
-        members = dict(
-            db    = self.db,
-            table = name,
-            )
+        members = dict()
 
-        table = self.schema.table(name)
-        for field in dataclasses.fields(cls):
-            column = table.column(field.name)
-            column.type(_column_mapping.get(field.type))
+        if not hasattr(cls, f'_{cls.__name__}__no_db'):
+            members.update(dict(db=self.db, table=name))
+            table = self.schema.table(name)
+            for field in dataclasses.fields(cls):
+                column = table.column(field.name)
+                column.type(_column_mapping.get(field.type))
 
-            if field.metadata.get('pkey', False):
-                column.primary_key()
-                members['primary_key'] = field.name
+                if field.metadata.get('pkey', False):
+                    column.primary_key()
+                    members['primary_key'] = field.name
 
-            unique = field.metadata.get('unique', False)
-            if unique:
-                table.unique(field.name)
+                unique = field.metadata.get('unique', False)
+                if unique:
+                    table.unique(field.name)
 
-            reference = field.metadata.get('ref', None)
-            if reference:
-                key = field.metadata.get('key', None)
-                column.references(reference.__name__, key)
+                reference = field.metadata.get('ref', None)
+                if reference:
+                    key = field.metadata.get('key', None)
+                    column.references(reference.__name__, key)
 
-        if hasattr(cls, f'_{cls.__name__}__no_pkey'):
-            table.primary_key(None)
+            if hasattr(cls, f'_{cls.__name__}__no_pkey'):
+                table.primary_key(None)
 
         record  = type(name, (cls,Record), _.prefix(members))
         _.data[name] = record
