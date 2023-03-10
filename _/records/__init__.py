@@ -15,8 +15,6 @@ import tornado.web
 
 import _
 
-from _.handlers.protected import Protected
-
 
 class Record:
     class Json(json.JSONEncoder):
@@ -66,7 +64,7 @@ class Protocol:
         raise NotImplementedError
 
 
-class Handler(Protected):
+class Handler(_.handlers.Protected):
     @tornado.web.authenticated
     async def get(self, record, record_id=None):
         if not record_id:

@@ -25,6 +25,7 @@ from .utils import *
 from . import version
 from . import settings
 from . import auth
+from . import handlers
 from . import components
 
 from .application import Application
