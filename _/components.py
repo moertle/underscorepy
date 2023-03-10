@@ -29,7 +29,6 @@ class Component(type(_)):
         return self._components[name]
 
     def __setitem__(self, name, value):
-        print(name, value)
         self._components[name] = value
 
     def items(self):

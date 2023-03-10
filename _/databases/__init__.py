@@ -8,14 +8,12 @@
 
 import _
 
-#from .schema import Schema
 
 class Database:
     @classmethod
     async def _(cls, name, **kwds):
         self = cls()
         _.databases[name] = self
-        print('???', name, kwds)
         await self.init(name, **kwds)
 
     async def init(self, **kwds):

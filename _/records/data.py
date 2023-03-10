@@ -54,7 +54,6 @@ class Data(_.records.Protocol):
         if hasattr(dataclass, '__unique__'):
             print(dataclass.__unique__)
 
-
         members = dict(
             _db    = self.db,
             _table = name,
@@ -71,7 +70,6 @@ class Data(_.records.Protocol):
             reference = field.metadata.get('references', None)
             if reference:
                 key = field.metadata.get('key', None)
-                print(reference, key)
                 column.references(reference.__name__, key)
 
         record   = type(name, (dataclass,Record), members)
